@@ -116,11 +116,10 @@ class MatchSeeder extends Seeder
             'status'           => 'cancelled',
         ]);
 
-        // Update TeamStats setelah seeding match selesai
-        $this->updateTeamStats($teams[0], 2, 1, 0, 1, 7, 5); // Garuda FC
-        $this->updateTeamStats($teams[1], 1, 0, 1, 0, 3, 5); // Rajawali
-        $this->updateTeamStats($teams[2], 1, 0, 0, 1, 2, 2); // Elang Muda
-        $this->updateTeamStats($teams[3], 1, 0, 0, 1, 2, 2); // Meteor Depok
+        // Update TeamStats HANYA untuk match yang audit-nya sudah approved (match2)
+        // match1 (Garuda FC vs Rajawali) audit masih PENDING → stats belum diupdate
+        $this->updateTeamStats($teams[2], 1, 0, 0, 1, 2, 2); // Elang Muda   (match2 draw)
+        $this->updateTeamStats($teams[3], 1, 0, 0, 1, 2, 2); // Meteor Depok (match2 draw)
     }
 
     private function seedMatchPlayers(FutsalMatch $match, Team $teamA, Team $teamB): void

@@ -10,12 +10,28 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Super Admin
+        User::create([
+            'name'     => 'Super Admin',
+            'email'    => 'super@matchgo.id',
+            'password' => Hash::make('password'),
+            'role'     => 'super_admin',
+        ]);
+
         // Admin
         User::create([
             'name'     => 'Admin MatchGo',
             'email'    => 'admin@matchgo.id',
             'password' => Hash::make('password'),
             'role'     => 'admin',
+        ]);
+
+        // Auditor
+        User::create([
+            'name'     => 'Doni Auditor',
+            'email'    => 'auditor@matchgo.id',
+            'password' => Hash::make('password'),
+            'role'     => 'auditor',
         ]);
 
         // Players
