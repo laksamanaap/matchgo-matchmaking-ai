@@ -16,6 +16,10 @@ class MatchmakingService
      */
     public function findOpponent(Team $team): Collection
     {
+        if ($team->verification_status !== 'verified') {
+            throw new \RuntimeException('Tim kamu belum diverifikasi. Tunggu proses audit.');
+        }
+
         $teamScheduleDays = $team->teamSchedules()
             ->where('is_active', true)
             ->pluck('day_of_week');

@@ -1,0 +1,39 @@
+{{-- Call-to-Action Section --}}
+<section class="py-20 md:py-28 relative overflow-hidden">
+    <div class="container mx-auto px-6 lg:px-10">
+        <div class="relative rounded-3xl grass-gradient p-10 md:p-16 text-center overflow-hidden shadow-2xl">
+
+            {{-- Field decoration --}}
+            <div class="absolute inset-6 rounded-2xl border border-white/10 pointer-events-none"></div>
+            <div class="absolute top-1/2 left-6 right-6 h-px bg-white/10 pointer-events-none"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-white/10 pointer-events-none"></div>
+
+            {{-- Floating elements --}}
+            <div class="absolute top-8 left-8 text-white/15 text-4xl animate-float">⚽</div>
+            <div class="absolute bottom-8 right-8 text-white/10 text-3xl animate-float-slow">🏆</div>
+            <div class="absolute top-12 right-16 text-white/10 text-xl animate-pulse-soft">✦</div>
+            <div class="absolute bottom-12 left-16 text-white/10 text-xl animate-pulse-soft">✦</div>
+
+            <div class="relative z-10 max-w-2xl mx-auto">
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 font-heading">
+                    <x-doodle-circle color="#ffffff" delay="200" opacity="0.5" variant="messy">Siap Tanding?</x-doodle-circle> 🔥
+                </h2>
+                <p class="text-white/80 text-lg md:text-xl mb-8 leading-relaxed">
+                    Daftarkan tim kamu sekarang dan temukan lawan bermain futsal yang sepadan.
+                    <x-doodle-highlight color="#ffffff" delay="600" opacity="0.15">Gratis, cepat, dan seru!</x-doodle-highlight>
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <x-button href="#" variant="white" size="xl">
+                        <span>Daftar Tim Gratis</span>
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </x-button>
+                    <x-button href="#" variant="outline" size="xl">
+                        Lihat Demo 👀
+                    </x-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

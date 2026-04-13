@@ -31,6 +31,11 @@ class VenueResource extends Resource
     protected static ?string $pluralModelLabel = 'Daftar Lapangan';
     protected static ?int $navigationSort = 1;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([

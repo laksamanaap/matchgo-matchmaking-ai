@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\MatchScoreAudit;
 
 class FutsalMatch extends Model
 {
@@ -53,5 +54,10 @@ class FutsalMatch extends Model
     public function matchPlayers(): HasMany
     {
         return $this->hasMany(MatchPlayer::class, 'match_id');
+    }
+
+    public function matchScoreAudit(): HasOne
+    {
+        return $this->hasOne(MatchScoreAudit::class, 'match_id');
     }
 }

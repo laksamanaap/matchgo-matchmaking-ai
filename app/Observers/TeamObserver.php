@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Team;
 use App\Models\TeamStats;
+use App\Models\TeamVerification;
 
 class TeamObserver
 {
@@ -21,5 +22,12 @@ class TeamObserver
             'goals_scored'   => 0,
             'goals_conceded' => 0,
         ]);
+
+        TeamVerification::create([
+            'team_id' => $team->id,
+            'status'  => 'pending',
+        ]);
+
+        $team->update(['verification_status' => 'pending']);
     }
 }

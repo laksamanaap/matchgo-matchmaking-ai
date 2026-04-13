@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -29,6 +30,11 @@ class TeamResource extends Resource
     protected static ?string $modelLabel = 'Tim';
     protected static ?string $pluralModelLabel = 'Daftar Tim';
     protected static ?int $navigationSort = 1;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -137,6 +143,11 @@ class TeamResource extends Resource
                     ->label('Pemain')
                     ->numeric(),
 
+                IconColumn::make('verification_status')
+                    ->label('Terverifikasi')
+                    ->getStateUsing(fn ($record): bool => $record->verification_status === 'verified')
+                    ->boolean(),
+                    
                 TextColumn::make('created_at')
                     ->label('Bergabung')
                     ->date('d M Y')

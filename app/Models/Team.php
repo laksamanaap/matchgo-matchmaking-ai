@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\TeamVerification;
 
 class Team extends Model
 {
     protected $fillable = [
         'owner_id', 'name', 'city', 'latitude', 'longitude',
-        'skill_level', 'player_count', 'logo_url',
+        'skill_level', 'verification_status', 'player_count', 'logo_url',
     ];
 
     protected function casts(): array
@@ -68,5 +69,10 @@ class Team extends Model
     public function matchesAsTeamB(): HasMany
     {
         return $this->hasMany(FutsalMatch::class, 'team_b_id');
+    }
+
+    public function teamVerification(): HasOne
+    {
+        return $this->hasOne(TeamVerification::class);
     }
 }

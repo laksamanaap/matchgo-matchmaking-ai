@@ -39,6 +39,11 @@ class MatchResource extends Resource
     protected static ?string $pluralModelLabel = 'Daftar Pertandingan';
     protected static ?int $navigationSort = 1;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'auditor', 'super_admin']);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
@@ -250,6 +255,7 @@ class MatchResource extends Resource
                     ->color('success')
                     ->visible(fn (FutsalMatch $record): bool =>
                         in_array($record->status, ['scheduled', 'ongoing'])
+                        && auth()->user()?->hasRole(['auditor', 'super_admin'])
                     )
                     ->form([
                         Grid::make(2)->schema([
@@ -278,8 +284,10 @@ class MatchResource extends Resource
                             ->send();
                     }),
 
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()
+                    ->visible(fn (): bool => auth()->user()?->hasRole(['admin', 'super_admin'])),
+                DeleteAction::make()
+                    ->visible(fn (): bool => auth()->user()?->hasRole(['admin', 'super_admin'])),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

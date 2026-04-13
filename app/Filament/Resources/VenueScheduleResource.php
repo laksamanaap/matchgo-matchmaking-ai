@@ -31,6 +31,11 @@ class VenueScheduleResource extends Resource
     protected static ?string $pluralModelLabel = 'Jadwal Lapangan';
     protected static ?int $navigationSort = 2;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([

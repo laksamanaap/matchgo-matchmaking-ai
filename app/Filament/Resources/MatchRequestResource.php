@@ -25,6 +25,11 @@ class MatchRequestResource extends Resource
     protected static ?string $pluralModelLabel = 'Daftar Pengajuan Match';
     protected static ?int $navigationSort = 2;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
     public static function canCreate(): bool
     {
         return false;
