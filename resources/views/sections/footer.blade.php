@@ -58,7 +58,7 @@
         {{-- Divider & Bottom --}}
         <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p class="text-white/40 text-sm">
-                © {{ date('Y') }} MATCHGO. All rights reserved. Made with 💚 for futsal lovers.
+                © {{ date('Y') }} MATCHGO. All rights reserved. Made with 💚 from poltek soehat.
             </p>
             <div class="flex items-center gap-4">
                 {{-- Instagram --}}
