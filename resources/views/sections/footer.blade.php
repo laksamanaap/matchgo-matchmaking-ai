@@ -6,19 +6,16 @@
             {{-- Brand --}}
             <div class="md:col-span-1 space-y-4">
                 <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2" />
-                            <circle cx="12" cy="12" r="3" stroke="white" stroke-width="1.5" />
-                            <path d="M12 3V7M12 17V21M3 12H7M17 12H21" stroke="white" stroke-width="1.5" stroke-linecap="round" />
-                        </svg>
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                        <x-heroicon-o-trophy class="h-6 w-6" />
                     </div>
                     <span class="text-xl font-bold font-heading">
                         MATCH<span class="text-[#81C784]">GO</span>
                     </span>
                 </div>
-                <p class="text-white/60 text-sm leading-relaxed">
-                    Platform matchmaking futsal #1 di Indonesia. Temukan lawan, main futsal, jadi juara! ⚽
+                <p class="text-white/60 text-sm leading-relaxed flex items-start gap-2">
+                    <x-heroicon-o-sparkles class="mt-0.5 h-4 w-4 shrink-0 text-[#81C784]" />
+                    <span>Platform matchmaking futsal #1 di Indonesia. Temukan lawan, main futsal, jadi juara!</span>
                 </p>
             </div>
 
@@ -57,8 +54,10 @@
 
         {{-- Divider & Bottom --}}
         <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="text-white/40 text-sm">
-                © {{ date('Y') }} MATCHGO. All rights reserved. Made with 💚 from poltek soehat.
+            <p class="text-white/40 text-sm inline-flex flex-wrap items-center gap-1.5">
+                <span>© {{ date('Y') }} MATCHGO. All rights reserved. Made with</span>
+                <x-heroicon-s-heart class="h-4 w-4 text-[#81C784]" />
+                <span>from poltek soehat.</span>
             </p>
             <div class="flex items-center gap-4">
                 {{-- Instagram --}}

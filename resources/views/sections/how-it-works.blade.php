@@ -8,8 +8,9 @@
 
         {{-- Section Header --}}
         <div class="text-center max-w-2xl mx-auto mb-16">
-            <span class="inline-block px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full mb-4">
-                🚀 Cara Kerja
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full mb-4">
+                <x-heroicon-o-paper-airplane class="h-4 w-4 text-[#4CAF50] shrink-0" />
+                Cara Kerja
             </span>
             <h2 class="text-3xl md:text-4xl font-extrabold text-[#1B5E20] mb-3 font-heading">
                 <x-doodle-highlight color="#81C784" delay="100" opacity="0.2">Mudah Banget</x-doodle-highlight>,
@@ -26,10 +27,10 @@
 
             @php
                 $steps = [
-                    ['number' => '01', 'emoji' => '📝', 'title' => 'Buat Profil Tim', 'description' => 'Daftarkan tim futsal kamu, masukkan lokasi, dan pilih level permainan: Casual, Semi-Pro, atau Competitive.'],
-                    ['number' => '02', 'emoji' => '📅', 'title' => 'Atur Jadwal', 'description' => 'Masukkan jadwal ketersediaan bermain — sistem akan mencocokkan dengan tim lain yang punya jadwal sama.'],
-                    ['number' => '03', 'emoji' => '🔍', 'title' => 'Cari Lawan', 'description' => "Tekan tombol 'Cari Lawan' dan biarkan MATCHGO menemukan lawan terbaik berdasarkan level, lokasi, dan jadwal."],
-                    ['number' => '04', 'emoji' => '⚽', 'title' => 'Main!', 'description' => 'Datang ke lapangan yang sudah ditentukan. Biaya sudah dibagi rata. Tinggal fokus main dan menang!'],
+                    ['number' => '01', 'icon' => 'clipboard-document-list', 'title' => 'Buat Profil Tim', 'description' => 'Daftarkan tim futsal kamu, masukkan lokasi, dan pilih level permainan: Casual, Semi-Pro, atau Competitive.'],
+                    ['number' => '02', 'icon' => 'calendar-days', 'title' => 'Atur Jadwal', 'description' => 'Masukkan jadwal ketersediaan bermain — sistem akan mencocokkan dengan tim lain yang punya jadwal sama.'],
+                    ['number' => '03', 'icon' => 'magnifying-glass', 'title' => 'Cari Lawan', 'description' => "Tekan tombol 'Cari Lawan' dan biarkan MATCHGO menemukan lawan terbaik berdasarkan level, lokasi, dan jadwal."],
+                    ['number' => '04', 'icon' => 'play-circle', 'title' => 'Main!', 'description' => 'Datang ke lapangan yang sudah ditentukan. Biaya sudah dibagi rata. Tinggal fokus main dan menang!'],
                 ];
             @endphp
 
@@ -39,8 +40,8 @@
                         <div class="text-5xl font-black text-[#81C784]/20 mb-2 font-heading">
                             {{ $step['number'] }}
                         </div>
-                        <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
-                            {{ $step['emoji'] }}
+                        <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#4CAF50]/10 text-[#2E7D32] group-hover:scale-110 transition-transform duration-300" aria-hidden="true">
+                            <x-dynamic-component :component="'heroicon-o-'.$step['icon']" class="h-8 w-8" />
                         </div>
                         <h3 class="text-lg font-bold text-[#1B5E20] mb-2 font-heading">
                             {{ $step['title'] }}
@@ -50,7 +51,9 @@
                         </p>
                     </div>
                     @if($index < 3)
-                        <div class="hidden lg:block absolute top-1/2 -right-4 z-10 text-[#81C784] text-xl">→</div>
+                        <div class="hidden lg:block absolute top-1/2 -right-4 z-10 text-[#81C784]" aria-hidden="true">
+                            <x-heroicon-o-arrow-right class="h-6 w-6" />
+                        </div>
                     @endif
                 </div>
             @endforeach

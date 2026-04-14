@@ -5,8 +5,12 @@
     <div class="absolute top-32 left-10 w-16 h-16 rounded-full bg-[#81C784]/20 animate-float"></div>
     <div class="absolute top-48 right-16 w-10 h-10 rounded-full bg-[#4CAF50]/15 animate-float-slow"></div>
     <div class="absolute bottom-32 left-1/4 w-8 h-8 rounded-full bg-[#2E7D32]/10 animate-float"></div>
-    <div class="absolute top-40 right-1/3 text-[#81C784]/30 animate-pulse-soft text-2xl">✦</div>
-    <div class="absolute bottom-40 right-10 text-[#4CAF50]/20 animate-pulse-soft text-xl">✦</div>
+    <div class="absolute top-40 right-1/3 text-[#81C784]/30 animate-pulse-soft pointer-events-none" aria-hidden="true">
+        <x-heroicon-o-sparkles class="h-6 w-6" />
+    </div>
+    <div class="absolute bottom-40 right-10 text-[#4CAF50]/20 animate-pulse-soft pointer-events-none" aria-hidden="true">
+        <x-heroicon-o-sparkles class="h-5 w-5" />
+    </div>
     <div class="absolute top-60 left-1/3 text-[#81C784]/20 animate-float-slow text-3xl font-light">+</div>
 
     {{-- Glow background --}}
@@ -42,19 +46,18 @@
                     <x-doodle-highlight color="#81C784" delay="600"><strong class="text-[#2E7D32]">level permainan</strong></x-doodle-highlight>,
                     <x-doodle-highlight color="#81C784" delay="800"><strong class="text-[#2E7D32]">lokasi</strong></x-doodle-highlight>, dan
                     <x-doodle-highlight color="#81C784" delay="1000"><strong class="text-[#2E7D32]">jadwal</strong></x-doodle-highlight>
-                    — otomatis, adil, dan transparan! 🎯
+                    — otomatis, adil, dan transparan! 
                 </p>
 
                 {{-- CTA Buttons --}}
                 <div class="flex flex-wrap gap-4">
                     <x-button href="#" variant="primary" size="lg">
                         <span>Cari Lawan Sekarang</span>
-                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
+                        <x-heroicon-o-arrow-right class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </x-button>
-                    <x-button href="#features" variant="secondary" size="lg">
-                        Pelajari Fitur 📖
+                    <x-button href="#features" variant="secondary" size="lg" class="group">
+                        <span>Pelajari Fitur</span>
+                        <x-heroicon-o-book-open class="w-5 h-5 text-[#2E7D32]/80 group-hover:text-[#4CAF50] transition-colors" />
                     </x-button>
                 </div>
 
@@ -86,16 +89,9 @@
                         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white/40"></div>
                     </div>
 
-                    {{-- Ball icon --}}
-                    <div class="relative z-10 animate-bounce-gentle">
-                        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="40" cy="40" r="35" fill="white" fill-opacity="0.95" />
-                            <path d="M40 5C40 5 50 20 40 25C30 30 25 15 25 15" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" />
-                            <path d="M40 75C40 75 50 60 40 55C30 50 25 65 25 65" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" />
-                            <path d="M5 40C5 40 20 50 25 40C30 30 15 25 15 25" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" />
-                            <path d="M75 40C75 40 60 50 55 40C50 30 65 25 65 25" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" />
-                            <polygon points="40,22 50,32 46,44 34,44 30,32" fill="#2E7D32" fill-opacity="0.15" stroke="#2E7D32" stroke-width="1.5" />
-                        </svg>
+                    {{-- Center icon (Heroicons, same set as Filament admin) --}}
+                    <div class="relative z-10 animate-bounce-gentle text-white drop-shadow-md">
+                        <x-heroicon-o-play-circle class="w-20 h-20 md:w-24 md:h-24" />
                     </div>
 
                     {{-- VS badge --}}
@@ -104,21 +100,29 @@
                     </div>
 
                     {{-- Sparkles --}}
-                    <div class="absolute top-6 right-6 text-white/50 text-lg animate-pulse-soft">✦</div>
-                    <div class="absolute bottom-6 left-6 text-white/30 text-sm animate-pulse-soft">⚡</div>
+                    <div class="absolute top-6 right-6 text-white/50 animate-pulse-soft pointer-events-none" aria-hidden="true">
+                        <x-heroicon-o-sparkles class="h-5 w-5" />
+                    </div>
+                    <div class="absolute bottom-6 left-6 text-white/30 animate-pulse-soft pointer-events-none" aria-hidden="true">
+                        <x-heroicon-o-bolt class="h-5 w-5" />
+                    </div>
                 </div>
 
                 {{-- Floating mini cards --}}
                 <div class="absolute -top-4 -left-4 md:left-0 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-2 animate-float rotate-2">
-                    <span class="text-2xl">🏆</span>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#4CAF50]/10 text-[#2E7D32]" aria-hidden="true">
+                        <x-heroicon-o-trophy class="h-6 w-6" />
+                    </span>
                     <div>
                         <p class="text-xs font-bold text-[#1B5E20]">Match Found!</p>
-                        <p class="text-[10px] text-[#2E7D32]/60">vs Thunder FC</p>
+                        <p class="text-[10px] text-[#2E7D32]/60">vs Liverpool FC</p>
                     </div>
                 </div>
 
                 <div class="absolute -bottom-4 -right-4 md:right-0 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-2 animate-float-slow -rotate-2">
-                    <span class="text-2xl">📍</span>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#4CAF50]/10 text-[#2E7D32]" aria-hidden="true">
+                        <x-heroicon-o-map-pin class="h-6 w-6" />
+                    </span>
                     <div>
                         <p class="text-xs font-bold text-[#1B5E20]">Auto Venue</p>
                         <p class="text-[10px] text-[#2E7D32]/60">GOR Sudirman</p>

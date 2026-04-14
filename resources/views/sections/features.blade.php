@@ -2,15 +2,20 @@
 <section id="features" class="py-20 md:py-28 relative overflow-hidden">
 
     {{-- Decorative elements --}}
-    <div class="absolute top-10 right-10 text-[#81C784]/15 text-6xl animate-float-slow">⚽</div>
-    <div class="absolute bottom-10 left-10 text-[#4CAF50]/10 text-4xl animate-float">🥅</div>
+    <div class="absolute top-10 right-10 text-[#81C784]/20 animate-float-slow pointer-events-none" aria-hidden="true">
+        <x-heroicon-o-sparkles class="h-16 w-16" />
+    </div>
+    <div class="absolute bottom-10 left-10 text-[#4CAF50]/15 animate-float pointer-events-none" aria-hidden="true">
+        <x-heroicon-o-flag class="h-12 w-12" />
+    </div>
 
     <div class="container mx-auto px-6 lg:px-10">
 
         {{-- Section Header --}}
         <div class="text-center max-w-2xl mx-auto mb-16">
-            <span class="inline-block px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full mb-4">
-                ✨ Fitur Unggulan
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full mb-4">
+                <x-heroicon-o-sparkles class="h-4 w-4 text-[#4CAF50]" />
+                Fitur Unggulan
             </span>
             <h2 class="text-3xl md:text-4xl font-extrabold text-[#1B5E20] mb-3 font-heading">
                 Semua yang Kamu
@@ -40,11 +45,7 @@
                     borderColor="border-[#2E7D32]/20"
                 >
                     <x-slot:icon>
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                            <circle cx="10" cy="12" r="5" stroke="#2E7D32" stroke-width="2" />
-                            <circle cx="22" cy="12" r="5" stroke="#2E7D32" stroke-width="2" />
-                            <path d="M16 18V28M12 24H20" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" />
-                        </svg>
+                        <x-heroicon-o-user-group class="h-8 w-8 text-[#2E7D32]" />
                     </x-slot:icon>
                 </x-card>
             </div>
@@ -57,10 +58,7 @@
                 borderColor="border-[#4CAF50]/20"
             >
                 <x-slot:icon>
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <path d="M16 4C10.477 4 6 8.477 6 14C6 22 16 28 16 28C16 28 26 22 26 14C26 8.477 21.523 4 16 4Z" stroke="#2E7D32" stroke-width="2" />
-                        <circle cx="16" cy="14" r="4" stroke="#4CAF50" stroke-width="2" />
-                    </svg>
+                    <x-heroicon-o-map-pin class="h-8 w-8 text-[#2E7D32]" />
                 </x-slot:icon>
             </x-card>
 
@@ -72,10 +70,7 @@
                 borderColor="border-[#81C784]/30"
             >
                 <x-slot:icon>
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <rect x="4" y="8" width="24" height="16" rx="3" stroke="#2E7D32" stroke-width="2" />
-                        <path d="M16 12V20M13 15H19M13 17H19" stroke="#4CAF50" stroke-width="1.5" stroke-linecap="round" />
-                    </svg>
+                    <x-heroicon-o-calculator class="h-8 w-8 text-[#2E7D32]" />
                 </x-slot:icon>
             </x-card>
 
@@ -91,11 +86,7 @@
                     borderColor="border-[#2E7D32]/15"
                 >
                     <x-slot:icon>
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                            <rect x="6" y="4" width="20" height="24" rx="3" stroke="#2E7D32" stroke-width="2" />
-                            <circle cx="16" cy="13" r="4" stroke="#4CAF50" stroke-width="1.5" />
-                            <path d="M10 24C10 20.686 12.686 18 16 18C19.314 18 22 20.686 22 24" stroke="#4CAF50" stroke-width="1.5" stroke-linecap="round" />
-                        </svg>
+                        <x-heroicon-o-chart-bar class="h-8 w-8 text-[#2E7D32]" />
                     </x-slot:icon>
                 </x-card>
             </div>

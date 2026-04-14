@@ -9,14 +9,22 @@
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-white/10 pointer-events-none"></div>
 
             {{-- Floating elements --}}
-            <div class="absolute top-8 left-8 text-white/15 text-4xl animate-float">⚽</div>
-            <div class="absolute bottom-8 right-8 text-white/10 text-3xl animate-float-slow">🏆</div>
-            <div class="absolute top-12 right-16 text-white/10 text-xl animate-pulse-soft">✦</div>
-            <div class="absolute bottom-12 left-16 text-white/10 text-xl animate-pulse-soft">✦</div>
+            <div class="absolute top-8 left-8 text-white/20 animate-float pointer-events-none" aria-hidden="true">
+                <x-heroicon-o-sparkles class="h-10 w-10" />
+            </div>
+            <div class="absolute bottom-8 right-8 text-white/15 animate-float-slow pointer-events-none" aria-hidden="true">
+                <x-heroicon-o-trophy class="h-9 w-9" />
+            </div>
+            <div class="absolute top-12 right-16 text-white/15 animate-pulse-soft pointer-events-none" aria-hidden="true">
+                <x-heroicon-o-sparkles class="h-5 w-5" />
+            </div>
+            <div class="absolute bottom-12 left-16 text-white/15 animate-pulse-soft pointer-events-none" aria-hidden="true">
+                <x-heroicon-o-sparkles class="h-5 w-5" />
+            </div>
 
             <div class="relative z-10 max-w-2xl mx-auto">
-                <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 font-heading">
-                    <x-doodle-circle color="#ffffff" delay="200" opacity="0.5" variant="messy">Siap Tanding?</x-doodle-circle> 🔥
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 font-heading inline-flex flex-wrap items-center justify-center gap-3">
+                    <x-doodle-circle color="#ffffff" delay="200" opacity="0.5" variant="messy">Siap Tanding?</x-doodle-circle>
                 </h2>
                 <p class="text-white/80 text-lg md:text-xl mb-8 leading-relaxed">
                     Daftarkan tim kamu sekarang dan temukan lawan bermain futsal yang sepadan.
@@ -25,12 +33,11 @@
                 <div class="flex flex-wrap justify-center gap-4">
                     <x-button href="#" variant="white" size="xl">
                         <span>Daftar Tim Gratis</span>
-                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
+                        <x-heroicon-o-arrow-right class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </x-button>
-                    <x-button href="#" variant="outline" size="xl">
-                        Lihat Demo 👀
+                    <x-button href="#" variant="outline" size="xl" class="group">
+                        <span>Lihat Demo</span>
+                        <x-heroicon-o-eye class="w-5 h-5 opacity-90 group-hover:opacity-100 transition-opacity" />
                     </x-button>
                 </div>
             </div>

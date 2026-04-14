@@ -5,15 +5,15 @@
 
             {{-- Logo --}}
             <a href="{{ url('/') }}" class="flex items-center gap-2 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-300 group-hover:scale-105 transform">
+                <!-- <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-300 group-hover:scale-105 transform">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2" />
                         <circle cx="12" cy="12" r="3" stroke="white" stroke-width="1.5" />
                         <path d="M12 3V7M12 17V21M3 12H7M17 12H21" stroke="white" stroke-width="1.5" stroke-linecap="round" />
                     </svg>
-                </div>
+                </div> -->
                 <span class="text-xl font-bold text-[#1B5E20] font-heading">
-                    MATCH<span class="text-[#4CAF50]">GO</span>
+                    MATCH<span class="text-[#4CAF50]">GO.</span>
                 </span>
             </a>
 
@@ -43,7 +43,7 @@
                     Masuk
                 </a>
                 <x-button href="#" variant="primary" size="sm">
-                    Daftar Tim ⚽
+                    Daftar Tim
                 </x-button>
             </div>
 
@@ -52,11 +52,7 @@
                 class="md:hidden p-2 rounded-xl hover:bg-[#81C784]/10 transition-colors"
                 onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
             >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round">
-                    <path d="M4 7H20" />
-                    <path d="M4 12H20" />
-                    <path d="M4 17H20" />
-                </svg>
+                <x-heroicon-o-bars-3 class="h-6 w-6 text-[#2E7D32]" />
             </button>
         </div>
 
@@ -68,7 +64,10 @@
             <a href="#about" class="block px-4 py-2 text-[#2E7D32]/70 font-medium rounded-xl hover:bg-[#81C784]/10 transition-colors">Tentang</a>
             <div class="pt-3 flex flex-col gap-2 px-4">
                 <a href="#" class="py-2.5 text-center text-[#2E7D32] font-semibold rounded-xl border border-[#81C784]/30 hover:bg-[#81C784]/10 transition-colors">Masuk</a>
-                <a href="#" class="py-2.5 text-center bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-semibold rounded-xl shadow-md">Daftar Tim ⚽</a>
+                <a href="#" class="flex w-full py-2.5 items-center justify-center gap-2 bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-semibold rounded-xl shadow-md">
+                    <span>Daftar Tim</span>
+                    <x-heroicon-o-user-plus class="h-5 w-5 shrink-0 opacity-90" />
+                </a>
             </div>
         </div>
     </div>

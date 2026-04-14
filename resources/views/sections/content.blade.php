@@ -2,8 +2,12 @@
 <section id="about" class="py-20 md:py-28 relative field-pattern overflow-hidden">
 
     {{-- Floating decorations --}}
-    <div class="absolute top-20 left-8 text-[#81C784]/15 text-5xl animate-float-slow rotate-12">⚽</div>
-    <div class="absolute bottom-20 right-8 text-[#4CAF50]/10 text-4xl animate-float -rotate-6">🏃</div>
+    <div class="absolute top-20 left-8 text-[#81C784]/20 animate-float-slow rotate-12 pointer-events-none" aria-hidden="true">
+        <x-heroicon-o-sparkles class="h-14 w-14" />
+    </div>
+    <div class="absolute bottom-20 right-8 text-[#4CAF50]/15 animate-float -rotate-6 pointer-events-none" aria-hidden="true">
+        <x-heroicon-o-user-group class="h-12 w-12" />
+    </div>
 
     <div class="container mx-auto px-6 lg:px-10">
 
@@ -12,8 +16,9 @@
 
             {{-- Text --}}
             <div class="space-y-6">
-                <span class="inline-block px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full">
-                    🎯 Matchmaking Cerdas
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full">
+                    <x-heroicon-o-bolt class="h-4 w-4 text-[#4CAF50] shrink-0" />
+                    Matchmaking Cerdas
                 </span>
                 <h2 class="text-3xl md:text-4xl font-extrabold text-[#1B5E20] font-heading">
                     Pertandingan yang
@@ -30,15 +35,21 @@
                 </p>
                 <ul class="space-y-3">
                     <li class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-lg">✅</span>
+                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-[#2E7D32]" aria-hidden="true">
+                            <x-heroicon-o-check class="w-5 h-5" />
+                        </span>
                         <span class="text-[#1B5E20] font-medium">Matching berdasarkan level: Casual, Semi-Pro, Competitive</span>
                     </li>
                     <li class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-lg">✅</span>
+                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-[#2E7D32]" aria-hidden="true">
+                            <x-heroicon-o-check class="w-5 h-5" />
+                        </span>
                         <span class="text-[#1B5E20] font-medium">Proximity matching — lawan dekat dengan lokasi kamu</span>
                     </li>
                     <li class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-lg">✅</span>
+                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-[#2E7D32]" aria-hidden="true">
+                            <x-heroicon-o-check class="w-5 h-5" />
+                        </span>
                         <span class="text-[#1B5E20] font-medium">Schedule sync — jadwal cocok, langsung main!</span>
                     </li>
                 </ul>
@@ -50,10 +61,12 @@
                     <div class="absolute inset-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-6 flex flex-col items-center justify-center gap-6">
                         {{-- Team A --}}
                         <div class="flex items-center gap-3 bg-white/20 rounded-2xl px-5 py-3 w-full">
-                            <div class="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center text-2xl">🦁</div>
+                            <div class="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center text-white" aria-hidden="true">
+                                <x-heroicon-o-user-group class="w-7 h-7" />
+                            </div>
                             <div>
-                                <p class="text-white font-bold text-sm">Lion FC</p>
-                                <p class="text-white/60 text-xs">Semi-Pro • Jakarta Selatan</p>
+                                <p class="text-white font-bold text-sm">Manchester United</p>
+                                <p class="text-white/60 text-xs">Profesional • Manchester</p>
                             </div>
                         </div>
 
@@ -64,16 +77,22 @@
 
                         {{-- Team B --}}
                         <div class="flex items-center gap-3 bg-white/20 rounded-2xl px-5 py-3 w-full">
-                            <div class="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center text-2xl">🐺</div>
+                            <div class="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center text-white" aria-hidden="true">
+                                <x-heroicon-o-user-group class="w-7 h-7" />
+                            </div>
                             <div>
-                                <p class="text-white font-bold text-sm">Wolf United</p>
-                                <p class="text-white/60 text-xs">Semi-Pro • Jakarta Timur</p>
+                                <p class="text-white font-bold text-sm">Real Madrid</p>
+                                <p class="text-white/60 text-xs">Profesional • Madrid</p>
                             </div>
                         </div>
 
                         {{-- Match Info --}}
                         <div class="bg-white/15 rounded-xl px-4 py-2 text-center w-full">
-                            <p class="text-white/80 text-xs font-medium">📍 GOR Cipinang • 📅 Sabtu, 19:00</p>
+                            <p class="text-white/80 text-xs font-medium inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                                <span class="inline-flex items-center gap-1"><x-heroicon-o-map-pin class="h-3.5 w-3.5 shrink-0 opacity-90" />GOR Cipinang</span>
+                                <span class="text-white/40" aria-hidden="true">·</span>
+                                <span class="inline-flex items-center gap-1"><x-heroicon-o-calendar-days class="h-3.5 w-3.5 shrink-0 opacity-90" />Sabtu, 19:00</span>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -92,11 +111,8 @@
             <div class="relative flex items-center justify-center order-2 lg:order-1">
                 <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 -rotate-1 hover:rotate-0 transition-transform duration-500 border border-[#81C784]/20">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <rect x="2" y="5" width="16" height="10" rx="2" stroke="white" stroke-width="1.5"/>
-                                <path d="M10 8V12M8 10H12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center text-white">
+                            <x-heroicon-o-banknotes class="h-5 w-5" />
                         </div>
                         <div>
                             <p class="text-[#1B5E20] font-bold text-sm font-heading">Smart Cost Split</p>
@@ -119,21 +135,26 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-center gap-1 text-sm text-[#2E7D32]/50">
-                        <span>💰</span> Transparan, tidak ada biaya tersembunyi
+                    <div class="flex items-center justify-center gap-2 text-sm text-[#2E7D32]/50">
+                        <x-heroicon-o-banknotes class="h-4 w-4 shrink-0 text-[#4CAF50]/70" />
+                        <span>Transparan, tidak ada biaya tersembunyi</span>
                     </div>
                 </div>
 
                 {{-- Decorative --}}
                 <div class="absolute -bottom-3 -left-3 bg-[#4CAF50] text-white rounded-2xl shadow-lg px-4 py-2 animate-float-slow rotate-2">
-                    <p class="text-sm font-bold">Fair Split! 🤝</p>
+                    <p class="text-sm font-bold inline-flex items-center gap-2">
+                        <x-heroicon-o-check-badge class="h-4 w-4 shrink-0 opacity-90" />
+                        Fair Split!
+                    </p>
                 </div>
             </div>
 
             {{-- Text --}}
             <div class="space-y-6 order-1 lg:order-2">
-                <span class="inline-block px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full">
-                    💰 Biaya Transparan
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-[#81C784]/15 text-[#2E7D32] text-sm font-bold rounded-full">
+                    <x-heroicon-o-banknotes class="h-4 w-4 text-[#4CAF50] shrink-0" />
+                    Biaya Transparan
                 </span>
                 <h2 class="text-3xl md:text-4xl font-extrabold text-[#1B5E20] font-heading">
                     Bagi Biaya
@@ -152,15 +173,21 @@
                 </p>
                 <ul class="space-y-3">
                     <li class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-lg">💳</span>
+                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-[#2E7D32]" aria-hidden="true">
+                            <x-heroicon-o-building-storefront class="w-5 h-5" />
+                        </span>
                         <span class="text-[#1B5E20] font-medium">Hitung otomatis berdasarkan durasi & harga lapangan</span>
                     </li>
                     <li class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-lg">📊</span>
+                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-[#2E7D32]" aria-hidden="true">
+                            <x-heroicon-o-chart-bar class="w-5 h-5" />
+                        </span>
                         <span class="text-[#1B5E20] font-medium">Rincian biaya per tim dan per pemain</span>
                     </li>
                     <li class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-lg">🔍</span>
+                        <span class="w-8 h-8 rounded-xl bg-[#4CAF50]/10 flex items-center justify-center text-[#2E7D32]" aria-hidden="true">
+                            <x-heroicon-o-eye class="w-5 h-5" />
+                        </span>
                         <span class="text-[#1B5E20] font-medium">100% transparan, semua pemain bisa lihat</span>
                     </li>
                 </ul>
