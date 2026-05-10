@@ -30,6 +30,44 @@ class TeamStatsService
         $this->applyResult($match->team_b_id, $resultB, $scoreB, $scoreA);
     }
 
+    /**
+     * Reverse previously applied stats (called before re-applying corrected scores).
+     */
+    public function reverseFromMatch(int $teamAId, int $teamBId, int $oldScoreA, int $oldScoreB): void
+    {
+        if ($oldScoreA > $oldScoreB) {
+            $resultA = 'win';
+            $resultB = 'loss';
+        } elseif ($oldScoreA < $oldScoreB) {
+            $resultA = 'loss';
+            $resultB = 'win';
+        } else {
+            $resultA = 'draw';
+            $resultB = 'draw';
+        }
+
+        $this->undoResult($teamAId, $resultA, $oldScoreA, $oldScoreB);
+        $this->undoResult($teamBId, $resultB, $oldScoreB, $oldScoreA);
+    }
+
+    private function undoResult(int $teamId, string $result, int $goalsFor, int $goalsAgainst): void
+    {
+        $stats = TeamStats::where('team_id', $teamId)->first();
+        if (! $stats) {
+            return;
+        }
+
+        $stats->decrement('total_matches');
+        $stats->decrement('goals_scored', $goalsFor);
+        $stats->decrement('goals_conceded', $goalsAgainst);
+
+        match ($result) {
+            'win'  => $stats->decrement('wins'),
+            'loss' => $stats->decrement('losses'),
+            'draw' => $stats->decrement('draws'),
+        };
+    }
+
     private function applyResult(int $teamId, string $result, int $goalsFor, int $goalsAgainst): void
     {
         $stats = TeamStats::firstOrCreate(

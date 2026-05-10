@@ -13,7 +13,7 @@ use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'whatsapp'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -22,7 +22,11 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return in_array($this->role, ['admin', 'auditor', 'super_admin']);
+        return match($panel->getId()) {
+            'admin' => in_array($this->role, ['admin', 'auditor', 'super_admin']),
+            'user'  => $this->role === 'player',
+            default => false,
+        };
     }
 
     public function hasRole(string|array $roles): bool

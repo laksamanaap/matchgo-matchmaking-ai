@@ -39,12 +39,18 @@
 
             {{-- CTA Buttons --}}
             <div class="hidden md:flex items-center gap-3">
-                <a href="#" class="px-5 py-2.5 text-[#2E7D32] font-semibold hover:bg-[#81C784]/10 rounded-xl transition-all duration-300">
+                @auth
+                <a href="/app" class="px-5 py-2.5 text-[#2E7D32] font-semibold hover:bg-[#81C784]/10 rounded-xl transition-all duration-300">
+                    Dashboard
+                </a>
+                @else
+                <a href="{{ route('login') }}" class="px-5 py-2.5 text-[#2E7D32] font-semibold hover:bg-[#81C784]/10 rounded-xl transition-all duration-300">
                     Masuk
                 </a>
-                <x-button href="#" variant="primary" size="sm">
+                <x-button href="{{ route('register') }}" variant="primary" size="sm">
                     Daftar Tim
                 </x-button>
+                @endauth
             </div>
 
             {{-- Mobile Hamburger --}}
@@ -63,11 +69,15 @@
             <a href="#how-it-works" class="block px-4 py-2 text-[#2E7D32]/70 font-medium rounded-xl hover:bg-[#81C784]/10 transition-colors">Cara Kerja</a>
             <a href="#about" class="block px-4 py-2 text-[#2E7D32]/70 font-medium rounded-xl hover:bg-[#81C784]/10 transition-colors">Tentang</a>
             <div class="pt-3 flex flex-col gap-2 px-4">
-                <a href="#" class="py-2.5 text-center text-[#2E7D32] font-semibold rounded-xl border border-[#81C784]/30 hover:bg-[#81C784]/10 transition-colors">Masuk</a>
-                <a href="#" class="flex w-full py-2.5 items-center justify-center gap-2 bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-semibold rounded-xl shadow-md">
+                @auth
+                <a href="/app" class="py-2.5 text-center text-[#2E7D32] font-semibold rounded-xl border border-[#81C784]/30 hover:bg-[#81C784]/10 transition-colors">Dashboard</a>
+                @else
+                <a href="{{ route('login') }}" class="py-2.5 text-center text-[#2E7D32] font-semibold rounded-xl border border-[#81C784]/30 hover:bg-[#81C784]/10 transition-colors">Masuk</a>
+                <a href="{{ route('register') }}" class="flex w-full py-2.5 items-center justify-center gap-2 bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-semibold rounded-xl shadow-md">
                     <span>Daftar Tim</span>
                     <x-heroicon-o-user-plus class="h-5 w-5 shrink-0 opacity-90" />
                 </a>
+                @endauth
             </div>
         </div>
     </div>

@@ -14,6 +14,7 @@
 --}}
 
 @extends('layouts.app')
+@section('hide-layout-nav', true)
 
 @section('content')
 

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class MatchRequest extends Model
 {
     protected $fillable = [
-        'requester_team_id', 'opponent_team_id', 'status', 'preferred_date',
+        'requester_team_id', 'opponent_team_id', 'status', 'preferred_date', 'notes',
     ];
 
     protected function casts(): array

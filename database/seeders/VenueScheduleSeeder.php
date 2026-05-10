@@ -13,11 +13,11 @@ class VenueScheduleSeeder extends Seeder
     {
         $venues = Venue::where('is_active', true)->get();
 
-        // Generate slot jadwal 2 minggu ke depan untuk setiap lapangan aktif
+        // Generate slot jadwal 4 minggu ke depan untuk setiap lapangan aktif
         $today = Carbon::today();
 
         foreach ($venues as $venue) {
-            for ($day = 0; $day < 14; $day++) {
+            for ($day = 0; $day < 28; $day++) {
                 $date = $today->copy()->addDays($day);
 
                 // Buat slot per 2 jam mulai pukul 07:00 sampai 22:00
