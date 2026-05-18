@@ -14,6 +14,7 @@ class Team extends Model
     protected $fillable = [
         'owner_id', 'name', 'city', 'latitude', 'longitude',
         'skill_level', 'verification_status', 'player_count', 'logo_url',
+        'description', 'contact_number',
     ];
 
     protected function casts(): array
@@ -74,5 +75,30 @@ class Team extends Model
     public function teamVerification(): HasOne
     {
         return $this->hasOne(TeamVerification::class);
+    }
+
+    public function players(): HasMany
+    {
+        return $this->hasMany(Player::class);
+    }
+
+    public function autoMatchmakingQueues(): HasMany
+    {
+        return $this->hasMany(AutoMatchmakingQueue::class);
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verification_status === 'verified';
+    }
+
+    public function hasMinimumPlayers(int $minimum = 5): bool
+    {
+        return $this->activePlayerCount() >= $minimum;
+    }
+
+    public function activePlayerCount(): int
+    {
+        return 1 + $this->players()->count();
     }
 }

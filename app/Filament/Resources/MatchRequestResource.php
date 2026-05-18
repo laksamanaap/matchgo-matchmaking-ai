@@ -56,6 +56,11 @@ class MatchRequestResource extends Resource
                     ->label('Tanggal Diinginkan')
                     ->date('d M Y'),
 
+                TextColumn::make('preferred_location')
+                    ->label('Lokasi Diinginkan')
+                    ->searchable()
+                    ->placeholder('-'),
+
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -87,6 +92,18 @@ class MatchRequestResource extends Resource
                     ->visible(fn (MatchRequest $record): bool => $record->status === 'pending')
                     ->requiresConfirmation()
                     ->action(function (MatchRequest $record) {
+                        $record->loadMissing(['requesterTeam', 'opponentTeam']);
+
+                        if (! $record->requesterTeam?->isVerified() || ! $record->opponentTeam?->isVerified()) {
+                            Notification::make()
+                                ->title('Pengajuan belum bisa diterima.')
+                                ->body('Kedua tim harus diverifikasi admin terlebih dahulu.')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
                         $record->update(['status' => 'accepted']);
 
                         FutsalMatch::create([

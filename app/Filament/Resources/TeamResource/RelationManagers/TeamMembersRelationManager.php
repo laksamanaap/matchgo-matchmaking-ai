@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\TeamResource\RelationManagers;
 
-use App\Models\User;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -66,6 +66,7 @@ class TeamMembersRelationManager extends RelationManager
                 AttachAction::make()
                     ->label('Tambah Anggota')
                     ->preloadRecordSelect()
+                    ->recordSelectOptionsQuery(fn ($query) => $query->where('role', 'player'))
                     ->form(fn (AttachAction $action): array => [
                         $action->getRecordSelect()
                             ->label('Pilih Pemain'),
@@ -80,6 +81,7 @@ class TeamMembersRelationManager extends RelationManager
                     ]),
             ])
             ->actions([
+                EditAction::make()->label('Edit'),
                 DetachAction::make()->label('Keluarkan'),
             ])
             ->bulkActions([

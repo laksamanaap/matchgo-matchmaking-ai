@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,              // 1. Users (super_admin + admin + auditor + 15 players)
             VenueSeeder::class,             // 2. Venues (7 aktif, 1 nonaktif)
+            FieldSeeder::class,             // 2b. Fields untuk booking user-facing
             TeamSeeder::class,              // 3. Teams + TeamStats (auto Observer) + Members + Schedules
             VenueScheduleSeeder::class,     // 4. Venue Schedules (slot 2 minggu ke depan)
             TeamVerificationSeeder::class,  // 5. Team Verifications (verified/pending/rejected)

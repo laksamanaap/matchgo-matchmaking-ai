@@ -59,7 +59,7 @@ class MatchResource extends Resource
                     ->label('Tim B')
                     ->options(Team::query()->pluck('name', 'id'))
                     ->searchable()
-                    ->required()
+                    ->nullable()
                     ->different('team_a_id'),
 
                 Select::make('match_request_id')
@@ -184,7 +184,7 @@ class MatchResource extends Resource
                 TextColumn::make('teams')
                     ->label('Pertandingan')
                     ->getStateUsing(fn (FutsalMatch $record): string =>
-                        "{$record->teamA->name} vs {$record->teamB->name}"
+                        "{$record->teamA->name} vs " . ($record->teamB?->name ?? 'Menunggu Lawan')
                     )
                     ->searchable(query: function ($query, string $search) {
                         $query->whereHas('teamA', fn ($q) => $q->where('name', 'like', "%{$search}%"))
@@ -193,6 +193,10 @@ class MatchResource extends Resource
 
                 TextColumn::make('venue.name')
                     ->label('Lapangan'),
+
+                TextColumn::make('field.name')
+                    ->label('Lapangan Booking')
+                    ->placeholder('-'),
 
                 TextColumn::make('match_date')
                     ->label('Tanggal')

@@ -14,7 +14,7 @@ class FutsalMatch extends Model
     protected $table = 'matches';
 
     protected $fillable = [
-        'match_request_id', 'venue_id', 'team_a_id', 'team_b_id',
+        'match_request_id', 'venue_id', 'field_id', 'team_a_id', 'team_b_id',
         'match_date', 'start_time', 'duration_minutes',
         'score_a', 'score_b', 'status',
     ];
@@ -36,6 +36,11 @@ class FutsalMatch extends Model
         return $this->belongsTo(Venue::class);
     }
 
+    public function field(): BelongsTo
+    {
+        return $this->belongsTo(Field::class);
+    }
+
     public function teamA(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'team_a_id');
@@ -49,6 +54,11 @@ class FutsalMatch extends Model
     public function matchCost(): HasOne
     {
         return $this->hasOne(MatchCost::class, 'match_id');
+    }
+
+    public function booking(): HasOne
+    {
+        return $this->hasOne(Booking::class, 'match_id');
     }
 
     public function matchPlayers(): HasMany
