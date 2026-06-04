@@ -84,7 +84,7 @@ class MatchController extends Controller
             ->where('verification_status', 'verified')
             ->get();
 
-        return view('match.index', compact('openChallenges', 'incoming', 'accepted', 'myChallenges', 'upcoming', 'history', 'myTeams'));
+        return view('match.index', compact('openChallenges', 'incoming', 'accepted', 'myChallenges', 'upcoming', 'history', 'myTeams', 'myTeamIds'));
     }
 
     public function create(): View

@@ -3,9 +3,9 @@
 namespace App\Filament\User\Resources\MyTeamResource\RelationManagers;
 
 use App\Enums\TeamMemberRole;
-use App\Models\User;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
@@ -23,19 +23,11 @@ class TeamMembersRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Select::make('user_id')
-                ->label('Pemain')
-                ->options(function () {
-                    $existingIds = $this->getOwnerRecord()->teamMembers()->pluck('user_id');
-                    return User::where('role', 'player')
-                        ->whereNotIn('id', $existingIds)
-                        ->orderBy('name')
-                        ->pluck('name', 'id');
-                })
-                ->searchable()
-                ->preload()
+            TextInput::make('name')
+                ->label('Nama Pemain')
+                ->placeholder('Nama lengkap pemain')
                 ->required()
-                ->disabledOn('edit'),
+                ->maxLength(100),
 
             Select::make('role')
                 ->label('Posisi dalam Tim')
@@ -48,23 +40,19 @@ class TeamMembersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('user.name')
+            ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('user.name')
+                TextColumn::make('name')
                     ->label('Nama Pemain')
                     ->searchable()
                     ->sortable()
-                    ->weight('semibold'),
-
-                TextColumn::make('user.email')
-                    ->label('Email')
-                    ->searchable()
-                    ->color('gray'),
+                    ->weight('semibold')
+                    ->default('—'),
 
                 TextColumn::make('role')
                     ->label('Posisi')
                     ->badge()
-                    ->color(fn (string $state): string => match($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'captain' => 'warning',
                         default   => 'gray',
                     })
@@ -77,8 +65,8 @@ class TeamMembersRelationManager extends RelationManager
             ])
             ->recordActions([
                 EditAction::make()
-                    ->label('Edit Posisi')
-                    ->modalHeading('Ubah Posisi Anggota'),
+                    ->label('Edit')
+                    ->modalHeading('Ubah Data Anggota'),
 
                 Action::make('promote')
                     ->label('Jadikan Kapten')
@@ -96,7 +84,7 @@ class TeamMembersRelationManager extends RelationManager
                     ->modalDescription('Anggota ini akan dikeluarkan dari tim.'),
             ])
             ->emptyStateHeading('Belum ada anggota')
-            ->emptyStateDescription('Tambahkan pemain ke dalam tim kamu.')
+            ->emptyStateDescription('Tambahkan nama pemain ke dalam tim kamu.')
             ->emptyStateIcon('heroicon-o-user-group');
     }
 }

@@ -14,7 +14,7 @@
                 <span>Automatching</span>
             </div>
             <h1 class="text-3xl font-black text-[#1B5E20] mb-1">Automatching Realtime</h1>
-            <p class="text-gray-500 text-sm">Sistem akan memasangkan tim kamu dengan lawan setara secara otomatis. Mirip ranked matchmaking di game MOBA.</p>
+            <p class="text-gray-500 text-sm">Sistem akan memasangkan tim kamu dengan lawan setara secara otomatis.</p>
         </div>
 
         {{-- Live matchmaking widget --}}

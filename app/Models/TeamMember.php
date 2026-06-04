@@ -7,7 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TeamMember extends Model
 {
-    protected $fillable = ['team_id', 'user_id', 'role'];
+    protected $fillable = ['team_id', 'user_id', 'role', 'name'];
+
+    /** Display name: plain text name if no linked user account. */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->name ?? $this->user?->name ?? 'Pemain';
+    }
 
     public function team(): BelongsTo
     {

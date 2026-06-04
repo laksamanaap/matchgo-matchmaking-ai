@@ -18,7 +18,7 @@ use Livewire\Component;
 
 class MatchmakingQueue extends Component
 {
-    public ?int $selectedTeamId = null;
+    public int $selectedTeamId = 0;
 
     /** @var array<string, mixed>|null */
     public ?array $foundMatch = null;
@@ -31,6 +31,8 @@ class MatchmakingQueue extends Component
         $teams = $this->myTeams();
         if ($teams->count() === 1) {
             $this->selectedTeamId = $teams->first()->id;
+        } else {
+            $this->selectedTeamId = 0;
         }
     }
 

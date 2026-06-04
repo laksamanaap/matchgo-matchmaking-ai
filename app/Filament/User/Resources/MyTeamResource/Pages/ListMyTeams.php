@@ -12,7 +12,10 @@ class ListMyTeams extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
+        // A captain already owns a team — hide the create button once they have one.
+        $hasTeam = auth()->user()->ownedTeams()->exists();
+
+        return $hasTeam ? [] : [
             CreateAction::make()->label('Buat Tim Baru'),
         ];
     }
