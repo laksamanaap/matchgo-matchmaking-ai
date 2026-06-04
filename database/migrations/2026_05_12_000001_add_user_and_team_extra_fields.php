@@ -9,13 +9,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('whatsapp')->nullable()->after('password');
-            $table->string('profile_photo')->nullable()->after('whatsapp');
+            if (! Schema::hasColumn('users', 'whatsapp')) {
+                $table->string('whatsapp')->nullable()->after('password');
+            }
+            if (! Schema::hasColumn('users', 'profile_photo')) {
+                $table->string('profile_photo')->nullable()->after('whatsapp');
+            }
         });
 
         Schema::table('teams', function (Blueprint $table) {
-            $table->text('description')->nullable()->after('city');
-            $table->string('contact_number')->nullable()->after('skill_level');
+            if (! Schema::hasColumn('teams', 'description')) {
+                $table->text('description')->nullable()->after('city');
+            }
+            if (! Schema::hasColumn('teams', 'contact_number')) {
+                $table->string('contact_number')->nullable()->after('skill_level');
+            }
         });
     }
 
@@ -28,5 +36,6 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn(['whatsapp', 'profile_photo']);
         });
+        // note: dropColumn ignores missing columns silently on most drivers
     }
 };

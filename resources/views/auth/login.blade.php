@@ -6,16 +6,6 @@
         <h1 class="text-3xl font-bold text-[#1B5E20] mb-2">Masuk ke MATCHGO</h1>
         <p class="text-sm text-[#2E7D32]/80 mb-8">Masuk untuk mengelola tim, meminta lawan, dan booking lapangan.</p>
 
-        @if ($errors->any())
-            <div class="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-red-700">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <form method="POST" action="{{ route('login') }}" class="space-y-5">
             @csrf
             <div>

@@ -5,20 +5,6 @@
     <x-navbar />
 
     <main class="container mx-auto px-6 pb-12 pt-24">
-        @if(session('success'))
-            <div class="mx-auto mb-6 max-w-6xl rounded-2xl border border-[#C8E6C9] bg-white p-4 text-sm text-[#1B5E20] shadow-sm">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="mx-auto mb-6 max-w-6xl rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                @foreach($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
-
         <section class="mx-auto max-w-6xl">
             @if(! $team->isVerified())
                 <div class="mb-6 rounded-2xl border border-yellow-200 bg-yellow-50 p-5 text-yellow-800">

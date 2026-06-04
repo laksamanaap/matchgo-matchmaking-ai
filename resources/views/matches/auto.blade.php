@@ -20,20 +20,6 @@
     <x-navbar />
 
     <main class="mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-12 pt-24 sm:px-6">
-        @if(session('success'))
-            <div class="mb-5 rounded-2xl border border-[#C8E6C9] bg-white px-4 py-3 text-sm text-[#1B5E20] shadow-sm">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                @foreach($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
-
         <section class="grid flex-1 items-center gap-6 lg:grid-cols-[1.08fr_0.92fr]">
             <div class="relative overflow-hidden rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10 sm:p-8">
                 <div class="absolute inset-0 field-pattern opacity-30"></div>

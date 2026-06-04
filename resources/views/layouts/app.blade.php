@@ -96,6 +96,8 @@
 
     @yield('content')
 
+    <x-toaster />
+
     @stack('scripts')
     <script>
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

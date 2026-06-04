@@ -5,28 +5,6 @@
     <x-navbar />
     
     <div class="pt-24 pb-12 container mx-auto px-6">
-        @if(session('success'))
-            <div class="mb-6 rounded-2xl bg-green-50 border border-green-200 p-4 text-green-700">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if($errors->any() && ! in_array(old('_form'), ['team', 'player', 'player_edit'], true))
-            <div class="mb-6 flex flex-col gap-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700 md:flex-row md:items-center md:justify-between">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-
-                @if($team->owner_id === Auth::id() && collect($errors->all())->contains(fn ($error) => str_contains($error, 'Minimal 5 pemain')))
-                    <button type="button" onclick="document.getElementById('add-player-modal').classList.remove('hidden')" class="shrink-0 rounded-xl bg-[#4CAF50] px-4 py-2 font-semibold text-white transition hover:bg-[#45a049]">
-                        + Tambah Pemain
-                    </button>
-                @endif
-            </div>
-        @endif
-
         <div class="grid gap-8">
             {{-- Team Header --}}
             <div class="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] rounded-3xl shadow-lg p-8 text-white">
@@ -201,12 +179,6 @@
                         </button>
                     @endif
                 </div>
-
-                @if(session('success'))
-                    <div class="mb-6 rounded-2xl bg-green-50 border border-green-200 p-4 text-green-700">
-                        {{ session('success') }}
-                    </div>
-                @endif
 
                 @if($team->players->count() > 0)
                     <div class="space-y-3">
