@@ -3,10 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\MatchResource\Pages;
+use App\Models\Field;
 use App\Models\FutsalMatch;
 use App\Models\MatchRequest;
 use App\Models\Team;
-use App\Models\Venue;
 use App\Services\MatchCostService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -44,6 +44,26 @@ class MatchResource extends Resource
         return auth()->user()?->hasRole(['admin', 'auditor', 'super_admin']);
     }
 
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
@@ -78,16 +98,16 @@ class MatchResource extends Resource
             ]),
 
             Section::make('Jadwal & Lokasi')->schema([
-                Select::make('venue_id')
+                Select::make('field_id')
                     ->label('Lapangan')
-                    ->options(Venue::query()->where('is_active', true)->pluck('name', 'id'))
+                    ->options(Field::query()->where('is_available', true)->pluck('name', 'id'))
                     ->searchable()
-                    ->required(),
+                    ->required(fn (string $operation): bool => $operation === 'create')
+                    ->helperText('Pilih lapangan dari data Fields. Data lama yang masih memakai Venue tetap bisa tampil.'),
 
                 DatePicker::make('match_date')
                     ->label('Tanggal Pertandingan')
-                    ->required()
-                    ->minDate(now()->toDateString()),
+                    ->required(),
 
                 TimePicker::make('start_time')
                     ->label('Waktu Mulai')
@@ -122,24 +142,22 @@ class MatchResource extends Resource
                 ->label('Status')
                 ->options([
                     'scheduled' => 'Dijadwalkan',
+                    'pending'   => 'Menunggu Konfirmasi',
+                    'confirmed' => 'Dikonfirmasi',
                     'ongoing'   => 'Berlangsung',
                     'completed' => 'Selesai',
                     'cancelled' => 'Dibatalkan',
+                    'expired'   => 'Kedaluwarsa',
                 ])
                 ->default('scheduled')
                 ->required(),
 
             Section::make('Rincian Biaya')
-                ->description('Biaya dihitung otomatis. Klik "Hitung Biaya" di halaman daftar pertandingan untuk memperbarui.')
+                ->description('Biaya dihitung otomatis dari lapangan dan durasi pertandingan.')
                 ->schema([
-                    Grid::make(3)->schema([
+                    Grid::make(4)->schema([
                         Placeholder::make('total_cost')
                             ->label('Total Biaya')
-                            ->hint(fn ($record) => $record?->venue
-                                ? 'Rp ' . number_format($record->venue->price_per_hour, 0, ',', '.') . '/jam × ' . $record->duration_minutes . ' menit'
-                                : null
-                            )
-                            ->hintIcon('heroicon-o-information-circle')
                             ->content(fn ($record) => $record?->matchCost
                                 ? 'Rp ' . number_format($record->matchCost->total_cost, 0, ',', '.')
                                 : '-'
@@ -147,28 +165,22 @@ class MatchResource extends Resource
 
                         Placeholder::make('cost_per_team')
                             ->label('Per Tim')
-                            ->hint('Total Biaya dibagi 2 tim secara rata')
-                            ->hintIcon('heroicon-o-information-circle')
                             ->content(fn ($record) => $record?->matchCost
                                 ? 'Rp ' . number_format($record->matchCost->cost_per_team, 0, ',', '.')
                                 : '-'
                             ),
 
-                        Placeholder::make('cost_per_player')
-                            ->label('Per Pemain')
-                            ->hint(function ($record) {
-                                if (! $record?->matchCost) return null;
-                                $hadir = $record->matchPlayers()
-                                    ->where('team_id', $record->team_a_id)
-                                    ->where('attended', true)
-                                    ->count();
-                                return $hadir > 0
-                                    ? "Biaya Tim ÷ {$hadir} pemain hadir (Tim A)"
-                                    : 'Berdasarkan jumlah pemain terdaftar';
-                            })
-                            ->hintIcon('heroicon-o-information-circle')
+                        Placeholder::make('dp_per_team')
+                            ->label('DP Minimal')
                             ->content(fn ($record) => $record?->matchCost
-                                ? 'Rp ' . number_format($record->matchCost->cost_per_player, 0, ',', '.')
+                                ? 'Rp ' . number_format($record->matchCost->dp_per_team, 0, ',', '.')
+                                : '-'
+                            ),
+
+                        Placeholder::make('handling_fee')
+                            ->label('Biaya Penanganan')
+                            ->content(fn ($record) => $record?->matchCost
+                                ? 'Rp ' . number_format($record->matchCost->handling_fee, 0, ',', '.')
                                 : '-'
                             ),
                     ]),
@@ -184,18 +196,16 @@ class MatchResource extends Resource
                 TextColumn::make('teams')
                     ->label('Pertandingan')
                     ->getStateUsing(fn (FutsalMatch $record): string =>
-                        "{$record->teamA->name} vs " . ($record->teamB?->name ?? 'Menunggu Lawan')
+                        ($record->teamA?->name ?? 'Tim A tidak tersedia') . ' vs ' . ($record->teamB?->name ?? 'Menunggu Lawan')
                     )
                     ->searchable(query: function ($query, string $search) {
                         $query->whereHas('teamA', fn ($q) => $q->where('name', 'like', "%{$search}%"))
                               ->orWhereHas('teamB', fn ($q) => $q->where('name', 'like', "%{$search}%"));
                     }),
 
-                TextColumn::make('venue.name')
-                    ->label('Lapangan'),
-
-                TextColumn::make('field.name')
-                    ->label('Lapangan Booking')
+                TextColumn::make('lapangan')
+                    ->label('Lapangan')
+                    ->getStateUsing(fn (FutsalMatch $record): string => $record->field?->name ?? $record->venue?->name ?? '-')
                     ->placeholder('-'),
 
                 TextColumn::make('match_date')
@@ -211,16 +221,22 @@ class MatchResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'scheduled' => 'info',
+                        'pending'   => 'warning',
+                        'confirmed' => 'success',
                         'ongoing'   => 'warning',
                         'completed' => 'success',
                         'cancelled' => 'danger',
+                        'expired'   => 'gray',
                         default     => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'scheduled' => 'Dijadwalkan',
+                        'pending'   => 'Menunggu Konfirmasi',
+                        'confirmed' => 'Dikonfirmasi',
                         'ongoing'   => 'Berlangsung',
                         'completed' => 'Selesai',
                         'cancelled' => 'Dibatalkan',
+                        'expired'   => 'Kedaluwarsa',
                         default     => $state,
                     }),
 
@@ -234,9 +250,12 @@ class MatchResource extends Resource
                     ->label('Status')
                     ->options([
                         'scheduled' => 'Dijadwalkan',
+                        'pending'   => 'Menunggu Konfirmasi',
+                        'confirmed' => 'Dikonfirmasi',
                         'ongoing'   => 'Berlangsung',
                         'completed' => 'Selesai',
                         'cancelled' => 'Dibatalkan',
+                        'expired'   => 'Kedaluwarsa',
                     ]),
             ])
             ->actions([
@@ -244,13 +263,22 @@ class MatchResource extends Resource
                     ->label('Hitung Biaya')
                     ->icon('heroicon-o-calculator')
                     ->color('warning')
+                    ->visible(fn (): bool => auth()->user()?->hasRole(['admin', 'super_admin']))
                     ->requiresConfirmation()
                     ->action(function (FutsalMatch $record) {
-                        app(MatchCostService::class)->calculate($record);
-                        Notification::make()
-                            ->title('Biaya berhasil dihitung!')
-                            ->success()
-                            ->send();
+                        try {
+                            app(MatchCostService::class)->calculate($record);
+                            Notification::make()
+                                ->title('Biaya berhasil dihitung!')
+                                ->success()
+                                ->send();
+                        } catch (\RuntimeException $exception) {
+                            Notification::make()
+                                ->title('Biaya gagal dihitung')
+                                ->body($exception->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     }),
 
                 Action::make('input_skor')
@@ -258,7 +286,9 @@ class MatchResource extends Resource
                     ->icon('heroicon-o-pencil-square')
                     ->color('success')
                     ->visible(fn (FutsalMatch $record): bool =>
-                        in_array($record->status, ['scheduled', 'ongoing'])
+                        $record->team_a_id !== null
+                        && $record->team_b_id !== null
+                        && in_array($record->status, ['pending', 'scheduled', 'confirmed', 'ongoing'], true)
                         && auth()->user()?->hasRole(['auditor', 'super_admin'])
                     )
                     ->form([
@@ -295,8 +325,10 @@ class MatchResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()?->hasRole(['admin', 'super_admin'])),
+                ])
+                    ->visible(fn (): bool => auth()->user()?->hasRole(['admin', 'super_admin'])),
             ])
             ->defaultSort('match_date', 'desc');
     }

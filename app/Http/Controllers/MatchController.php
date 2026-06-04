@@ -27,21 +27,32 @@ class MatchController extends Controller
         }
 
         $canUseMatchFeatures = $team->hasMinimumPlayers();
+        $now = now();
+        $upcomingOnly = function ($query) use ($now) {
+            $query->where(function ($query) use ($now) {
+                $query->whereDate('match_date', '>', $now->toDateString())
+                    ->orWhere(function ($query) use ($now) {
+                        $query->whereDate('match_date', $now->toDateString())
+                            ->whereTime('start_time', '>=', $now->format('H:i:s'));
+                    });
+            });
+        };
 
         $myChallenges = FutsalMatch::query()
             ->where('team_a_id', $team->id)
             ->whereNull('team_b_id')
             ->where('status', 'scheduled')
+            ->where($upcomingOnly)
             ->with(['field', 'matchCost'])
-            ->latest('match_date')
-            ->latest('start_time')
+            ->orderBy('match_date')
+            ->orderBy('start_time')
             ->get();
 
         $openChallenges = FutsalMatch::query()
             ->whereNull('team_b_id')
             ->where('team_a_id', '!=', $team->id)
             ->where('status', 'scheduled')
-            ->whereDate('match_date', '>=', now()->toDateString())
+            ->where($upcomingOnly)
             ->whereHas('teamA', fn ($query) => $query
                 ->where('verification_status', 'verified')
                 ->has('players', '>=', 4))
@@ -55,17 +66,17 @@ class MatchController extends Controller
                 ->where('team_a_id', $team->id)
                 ->orWhere('team_b_id', $team->id))
             ->whereNotNull('team_b_id')
+            ->whereIn('status', ['pending', 'scheduled', 'confirmed', 'ongoing'])
+            ->where($upcomingOnly)
             ->with(['teamA', 'teamB', 'field', 'matchCost'])
-            ->latest('match_date')
-            ->latest('start_time')
+            ->orderBy('match_date')
+            ->orderBy('start_time')
             ->limit(6)
             ->get();
 
         return view('matches.index', [
             'team' => $team,
             'canUseMatchFeatures' => $canUseMatchFeatures,
-            'myChallenges' => $myChallenges,
-            'openChallenges' => $openChallenges,
             'myMatches' => $myMatches,
         ]);
     }
@@ -79,12 +90,22 @@ class MatchController extends Controller
         }
 
         $canUseMatchFeatures = $team->hasMinimumPlayers();
+        $now = now();
+        $upcomingOnly = function ($query) use ($now) {
+            $query->where(function ($query) use ($now) {
+                $query->whereDate('match_date', '>', $now->toDateString())
+                    ->orWhere(function ($query) use ($now) {
+                        $query->whereDate('match_date', $now->toDateString())
+                            ->whereTime('start_time', '>=', $now->format('H:i:s'));
+                    });
+            });
+        };
 
         $openChallenges = FutsalMatch::query()
             ->whereNull('team_b_id')
             ->where('team_a_id', '!=', $team->id)
             ->where('status', 'scheduled')
-            ->whereDate('match_date', '>=', now()->toDateString())
+            ->where($upcomingOnly)
             ->whereHas('teamA', fn ($query) => $query
                 ->where('verification_status', 'verified')
                 ->has('players', '>=', 4))
@@ -97,6 +118,36 @@ class MatchController extends Controller
             'team' => $team,
             'openChallenges' => $openChallenges,
             'canUseMatchFeatures' => $canUseMatchFeatures,
+        ]);
+    }
+
+    public function history()
+    {
+        $team = Auth::user()->team;
+
+        if (! $team) {
+            return redirect()->route('teams.index')->withErrors(['message' => 'Buat tim terlebih dahulu.']);
+        }
+
+        $matches = FutsalMatch::query()
+            ->where(fn ($query) => $query
+                ->where('team_a_id', $team->id)
+                ->orWhere('team_b_id', $team->id))
+            ->with(['teamA', 'teamB', 'field', 'booking', 'matchCost'])
+            ->latest('match_date')
+            ->latest('start_time')
+            ->get();
+
+        $completedCount = $matches->where('status', 'completed')->count();
+        $cancelledCount = $matches->where('status', 'cancelled')->count();
+        $upcomingCount = $matches->whereNotIn('status', ['completed', 'cancelled'])->count();
+
+        return view('matches.history', [
+            'team' => $team,
+            'matches' => $matches,
+            'completedCount' => $completedCount,
+            'cancelledCount' => $cancelledCount,
+            'upcomingCount' => $upcomingCount,
         ]);
     }
 
@@ -172,17 +223,30 @@ class MatchController extends Controller
         }
 
         $fields = Field::where('is_available', true)->get();
-        $createdMatches = FutsalMatch::query()
+        $now = now();
+        $upcomingOnly = function ($query) use ($now) {
+            $query->where(function ($query) use ($now) {
+                $query->whereDate('match_date', '>', $now->toDateString())
+                    ->orWhere(function ($query) use ($now) {
+                        $query->whereDate('match_date', $now->toDateString())
+                            ->whereTime('start_time', '>=', $now->format('H:i:s'));
+                    });
+            });
+        };
+        $myChallenges = FutsalMatch::query()
             ->where('team_a_id', $team->id)
-            ->with(['teamB', 'field', 'booking', 'matchCost'])
-            ->latest('match_date')
-            ->latest('start_time')
+            ->whereNull('team_b_id')
+            ->where('status', 'scheduled')
+            ->where($upcomingOnly)
+            ->with(['field', 'matchCost'])
+            ->orderBy('match_date')
+            ->orderBy('start_time')
             ->get();
 
         return view('matches.create', [
             'team' => $team,
             'fields' => $fields,
-            'createdMatches' => $createdMatches,
+            'myChallenges' => $myChallenges,
         ]);
     }
 
@@ -241,6 +305,12 @@ class MatchController extends Controller
         $bookingStartTime = Carbon::parse("$matchDate $startTime");
         $bookingEndTime = $bookingStartTime->copy()->addMinutes((int) $request->duration_minutes);
 
+        if ($bookingStartTime->lt(now())) {
+            return back()
+                ->withErrors(['message' => 'Jam pertandingan sudah lewat. Pilih tanggal dan jam yang masih akan datang.'])
+                ->withInput();
+        }
+
         $booking = Booking::query()
             ->where('field_id', $field->id)
             ->where('status', '!=', 'cancelled')
@@ -279,8 +349,10 @@ class MatchController extends Controller
                 'match_id' => $match->id,
                 'total_cost' => $totalCost,
                 'cost_per_team' => (int) round($totalCost / 2),
+                'dp_per_team' => (int) ceil(($totalCost / 2) * 0.5),
+                'handling_fee' => (int) ceil($totalCost * 0.1),
                 'cost_per_player' => (int) round($totalCost / max(1, $team->player_count ?: 1)),
-                'payment_notes' => "Biaya lapangan {$field->name} otomatis dibagi 2 tim.",
+                'payment_notes' => "Biaya lapangan {$field->name} dibagi 2 tim. DP minimal 50% dari biaya per tim. Biaya penanganan 10% untuk pengelola web.",
             ]);
 
             return $match;
@@ -329,6 +401,10 @@ class MatchController extends Controller
 
         if ($match->team_b_id !== null || $match->status !== 'scheduled') {
             return back()->withErrors(['message' => 'Tantangan ini sudah tidak tersedia.']);
+        }
+
+        if (Carbon::parse($match->match_date->toDateString() . ' ' . $match->start_time)->lt(now())) {
+            return back()->withErrors(['message' => 'Tantangan ini sudah lewat dan tidak bisa diambil.']);
         }
 
         $match->update(['team_b_id' => $team->id]);
@@ -406,18 +482,8 @@ class MatchController extends Controller
 
     public function autoCancel()
     {
-        $team = Auth::user()->team;
-
-        if (! $team || $team->owner_id !== Auth::id()) {
-            abort(403);
-        }
-
-        AutoMatchmakingQueue::query()
-            ->where('team_id', $team->id)
-            ->whereIn('status', ['waiting', 'searching'])
-            ->update(['status' => 'cancelled']);
-
-        return redirect()->route('matches.auto')->with('success', 'Antrean auto matchmaking dibatalkan.');
+        return redirect()->route('matches.auto')
+            ->withErrors(['message' => 'AutoMatching tidak bisa dibatalkan setelah pencarian dimulai.']);
     }
 
     public function autoStatus(MatchmakingService $service)
@@ -513,6 +579,11 @@ class MatchController extends Controller
     {
         $this->authorizeMatchView($match);
 
+        if ($match->isAutoMatch()) {
+            return redirect()->route('matches.show', $match)
+                ->withErrors(['message' => 'Match AutoMatching tidak bisa dibatalkan. Kedua tim wajib membayar DP minimal 50%.']);
+        }
+
         if (! in_array($match->status, ['pending', 'confirmed'], true)) {
             return redirect()->route('matches.auto')->withErrors(['message' => 'Match ini sudah tidak bisa ditolak.']);
         }
@@ -553,6 +624,11 @@ class MatchController extends Controller
     public function cancel(FutsalMatch $match)
     {
         $this->authorizeMatchCancel($match);
+
+        if ($match->isAutoMatch()) {
+            return redirect()->route('matches.show', $match)
+                ->withErrors(['message' => 'Match AutoMatching tidak bisa dibatalkan. Kedua tim wajib membayar DP minimal 50%.']);
+        }
 
         if ($match->status === 'cancelled') {
             return redirect()->route('matches.take')->with('success', 'Pertandingan sudah dibatalkan.');

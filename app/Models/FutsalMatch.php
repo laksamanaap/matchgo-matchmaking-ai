@@ -70,4 +70,14 @@ class FutsalMatch extends Model
     {
         return $this->hasOne(MatchScoreAudit::class, 'match_id');
     }
+
+    public function autoMatchmakingQueues(): HasMany
+    {
+        return $this->hasMany(AutoMatchmakingQueue::class, 'match_id');
+    }
+
+    public function isAutoMatch(): bool
+    {
+        return $this->autoMatchmakingQueues()->exists();
+    }
 }

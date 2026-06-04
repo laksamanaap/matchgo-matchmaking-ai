@@ -11,6 +11,22 @@
             </div>
         @endif
 
+        @if($errors->any() && ! in_array(old('_form'), ['team', 'player', 'player_edit'], true))
+            <div class="mb-6 flex flex-col gap-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700 md:flex-row md:items-center md:justify-between">
+                <ul class="list-disc list-inside space-y-1">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+
+                @if($team->owner_id === Auth::id() && collect($errors->all())->contains(fn ($error) => str_contains($error, 'Minimal 5 pemain')))
+                    <button type="button" onclick="document.getElementById('add-player-modal').classList.remove('hidden')" class="shrink-0 rounded-xl bg-[#4CAF50] px-4 py-2 font-semibold text-white transition hover:bg-[#45a049]">
+                        + Tambah Pemain
+                    </button>
+                @endif
+            </div>
+        @endif
+
         <div class="grid gap-8">
             {{-- Team Header --}}
             <div class="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] rounded-3xl shadow-lg p-8 text-white">
@@ -32,9 +48,9 @@
                     </div>
                     @if($team->owner_id === Auth::id())
                         <div class="flex gap-3">
-                            <a href="#edit" onclick="document.getElementById('edit-modal').classList.remove('hidden')" class="px-6 py-3 rounded-2xl bg-white/20 text-white font-semibold hover:bg-white/30 transition">
+                            <button type="button" data-open-team-edit class="px-6 py-3 rounded-2xl bg-white/20 text-white font-semibold hover:bg-white/30 transition">
                                 Edit
-                            </a>
+                            </button>
                             <form method="POST" action="{{ route('teams.destroy', $team) }}" class="inline" onsubmit="return confirm('Hapus tim ini?')">
                                 @csrf
                                 @method('DELETE')
@@ -79,7 +95,7 @@
                         <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="text-[#2E7D32] text-2xl leading-none">&times;</button>
                     </div>
 
-                    @if($errors->any() && ! old('player_name'))
+                    @if($errors->any() && old('_form') === 'team')
                         <div class="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-red-700">
                             <ul class="list-disc list-inside space-y-1">
                                 @foreach($errors->all() as $error)
@@ -92,6 +108,7 @@
                     <form method="POST" action="{{ route('teams.update', $team) }}" enctype="multipart/form-data" class="grid gap-6">
                         @csrf
                         @method('PUT')
+                        <input type="hidden" name="_form" value="team">
 
                         <div class="flex items-center gap-4 rounded-2xl bg-[#F1F8E9] p-4">
                             <div class="h-20 w-20 overflow-hidden rounded-2xl border border-[#81C784]/30 bg-white">
@@ -166,7 +183,7 @@
                 </div>
             </div>
 
-            @if($errors->any() && ! old('player_name'))
+            @if($errors->any() && old('_form') === 'team')
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('edit-modal').classList.remove('hidden');
@@ -201,7 +218,17 @@
                                 </div>
                                 @if($team->owner_id === Auth::id())
                                     <div class="flex gap-2">
-                                        <button onclick="editPlayer({{ $player->id }})" class="px-3 py-1 rounded-lg text-sm text-[#2E7D32] hover:bg-[#81C784]/20 transition">Edit</button>
+                                        <button
+                                            type="button"
+                                            data-open-player-edit
+                                            data-action="{{ route('players.update', $player) }}"
+                                            data-name="{{ $player->player_name }}"
+                                            data-position="{{ $player->position }}"
+                                            data-age="{{ $player->age }}"
+                                            class="px-3 py-1 rounded-lg text-sm text-[#2E7D32] hover:bg-[#81C784]/20 transition"
+                                        >
+                                            Edit
+                                        </button>
                                         <form method="POST" action="/players/{{ $player->id }}" class="inline" onsubmit="return confirm('Hapus pemain?')">
                                             @csrf
                                             @method('DELETE')
@@ -227,7 +254,7 @@
                         <button type="button" onclick="document.getElementById('add-player-modal').classList.add('hidden')" class="text-[#2E7D32] text-2xl leading-none">&times;</button>
                     </div>
 
-                    @if($errors->any() && old('player_name'))
+                    @if($errors->any() && old('_form') === 'player')
                         <div class="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-red-700">
                             <ul class="list-disc list-inside space-y-1">
                                 @foreach($errors->all() as $error)
@@ -239,6 +266,7 @@
 
                     <form method="POST" action="{{ route('players.store') }}" class="grid gap-6">
                         @csrf
+                        <input type="hidden" name="_form" value="player">
                         <div>
                             <label for="player_name" class="block text-sm font-semibold text-[#2E7D32] mb-2">Nama Pemain</label>
                             <input id="player_name" name="player_name" type="text" value="{{ old('player_name') }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('player_name') border-red-500 @enderror" />
@@ -270,13 +298,117 @@
                 </div>
             </div>
 
-            @if($errors->any() && old('player_name'))
+            <div id="edit-player-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                <div class="w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-[#1B5E20]">Edit Pemain</h2>
+                            <p class="text-sm text-[#2E7D32]/80">Perbarui informasi pemain tim.</p>
+                        </div>
+                        <button type="button" data-close-player-edit class="text-[#2E7D32] text-2xl leading-none">&times;</button>
+                    </div>
+
+                    @if($errors->any() && old('_form') === 'player_edit')
+                        <div class="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-red-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form id="edit-player-form" method="POST" action="{{ old('player_id') ? route('players.update', old('player_id')) : '#' }}" class="grid gap-6">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="_form" value="player_edit">
+                        <input id="edit-player-id" type="hidden" name="player_id" value="{{ old('player_id') }}">
+
+                        <div>
+                            <label for="edit_player_name" class="block text-sm font-semibold text-[#2E7D32] mb-2">Nama Pemain</label>
+                            <input id="edit_player_name" name="player_name" type="text" value="{{ old('_form') === 'player_edit' ? old('player_name') : '' }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('player_name') border-red-500 @enderror" />
+                            @if(old('_form') === 'player_edit')
+                                @error('player_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            @endif
+                        </div>
+
+                        <div>
+                            <label for="edit_position" class="block text-sm font-semibold text-[#2E7D32] mb-2">Posisi</label>
+                            <select id="edit_position" name="position" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('position') border-red-500 @enderror">
+                                <option value="">-- Pilih Posisi --</option>
+                                @foreach(['Kiper', 'Anchor', 'Flank Kiri', 'Flank Kanan', 'Pivot', 'Universal'] as $position)
+                                    <option value="{{ $position }}" {{ old('_form') === 'player_edit' && old('position') === $position ? 'selected' : '' }}>{{ $position }}</option>
+                                @endforeach
+                            </select>
+                            @if(old('_form') === 'player_edit')
+                                @error('position') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            @endif
+                        </div>
+
+                        <div>
+                            <label for="edit_age" class="block text-sm font-semibold text-[#2E7D32] mb-2">Usia</label>
+                            <input id="edit_age" name="age" type="number" min="13" max="50" value="{{ old('_form') === 'player_edit' ? old('age') : '' }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('age') border-red-500 @enderror" />
+                            @if(old('_form') === 'player_edit')
+                                @error('age') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            @endif
+                        </div>
+
+                        <div class="flex gap-3 pt-4 justify-end">
+                            <button type="button" data-close-player-edit class="rounded-2xl border border-[#81C784]/40 px-5 py-3 text-[#2E7D32] font-semibold hover:bg-[#81C784]/10 transition">Batal</button>
+                            <button type="submit" class="rounded-2xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] px-5 py-3 text-white font-semibold hover:shadow-lg transition">Simpan Pemain</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if($errors->any() && old('_form') === 'player')
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('add-player-modal').classList.remove('hidden');
                     });
                 </script>
             @endif
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const teamEditModal = document.getElementById('edit-modal');
+                    const playerEditModal = document.getElementById('edit-player-modal');
+                    const playerEditForm = document.getElementById('edit-player-form');
+                    const playerEditName = document.getElementById('edit_player_name');
+                    const playerEditPosition = document.getElementById('edit_position');
+                    const playerEditAge = document.getElementById('edit_age');
+                    const playerEditId = document.getElementById('edit-player-id');
+
+                    document.querySelectorAll('[data-open-team-edit]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            teamEditModal?.classList.remove('hidden');
+                        });
+                    });
+
+                    document.querySelectorAll('[data-open-player-edit]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            if (!playerEditModal || !playerEditForm) return;
+
+                            playerEditForm.action = button.dataset.action;
+                            playerEditName.value = button.dataset.name || '';
+                            playerEditPosition.value = button.dataset.position || '';
+                            playerEditAge.value = button.dataset.age || '';
+                            playerEditId.value = button.dataset.action?.split('/').pop() || '';
+                            playerEditModal.classList.remove('hidden');
+                        });
+                    });
+
+                    document.querySelectorAll('[data-close-player-edit]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            playerEditModal?.classList.add('hidden');
+                        });
+                    });
+
+                    @if(old('_form') === 'player_edit')
+                        playerEditModal?.classList.remove('hidden');
+                    @endif
+                });
+            </script>
 
             <script>
                 document.addEventListener('DOMContentLoaded', function () {

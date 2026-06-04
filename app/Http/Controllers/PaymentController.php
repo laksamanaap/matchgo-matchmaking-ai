@@ -6,16 +6,21 @@ use App\Http\Requests\PaymentRequest;
 use App\Models\Payment;
 use App\Models\Booking;
 use App\Notifications\PaymentNotification;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $team = Auth::user()->team;
 
         if (! $team) {
-            return response()->json(['message' => 'You must create a team first.'], 422);
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'You must create a team first.'], 422);
+            }
+
+            return redirect()->route('teams.index')->withErrors(['message' => 'Buat tim terlebih dahulu.']);
         }
 
         $payments = Payment::with('booking.match')
@@ -25,18 +30,62 @@ class PaymentController extends Controller
             })
             ->get();
 
-        return response()->json($payments);
+        if ($request->wantsJson()) {
+            return response()->json($payments);
+        }
+
+        $matches = $team->matchesAsTeamA()
+            ->whereNotNull('team_b_id')
+            ->with(['teamA', 'teamB', 'field', 'booking.payments', 'matchCost'])
+            ->get()
+            ->merge(
+                $team->matchesAsTeamB()
+                    ->with(['teamA', 'teamB', 'field', 'booking.payments', 'matchCost'])
+                    ->get()
+            )
+            ->sortByDesc('match_date')
+            ->values();
+
+        return view('payments.index', [
+            'team' => $team,
+            'matches' => $matches,
+        ]);
     }
 
-    public function store(PaymentRequest $request)
+    public function store(Request $request)
     {
-        $booking = Booking::findOrFail($request->booking_id);
+        $data = $request->validate([
+            'booking_id' => ['required', 'exists:bookings,id'],
+            'payment_method' => ['required', 'in:bank_transfer,e-wallet,cash'],
+        ]);
+
+        $team = Auth::user()->team;
+
+        if (! $team) {
+            abort(403);
+        }
+
+        $booking = Booking::with('match.matchCost')->findOrFail($data['booking_id']);
 
         if (! $this->authorizeBooking($booking)) {
             abort(403);
         }
 
-        $payment = Payment::create($request->validated());
+        $matchCost = $booking->match->matchCost;
+        $amount = (float) (($matchCost?->dp_per_team ?? (int) ceil(($matchCost?->cost_per_team ?? 0) * 0.5))
+            + ($matchCost?->handling_fee ?? (int) ceil(($matchCost?->total_cost ?? 0) * 0.1)));
+
+        $payment = Payment::updateOrCreate(
+            [
+                'booking_id' => $booking->id,
+                'team_id' => $team->id,
+            ],
+            [
+                'amount' => $amount,
+                'payment_method' => $data['payment_method'],
+                'payment_status' => 'paid',
+            ]
+        );
 
         $booking->match->teamA->owner->notify(new PaymentNotification(
             'payment_created',
@@ -44,13 +93,17 @@ class PaymentController extends Controller
             $payment->id
         ));
 
-        $booking->match->teamB->owner->notify(new PaymentNotification(
+        $booking->match->teamB?->owner?->notify(new PaymentNotification(
             'payment_created',
             "Payment of {$payment->amount} has been recorded for booking {$booking->id}.",
             $payment->id
         ));
 
-        return response()->json(['payment' => $payment], 201);
+        if ($request->wantsJson()) {
+            return response()->json(['payment' => $payment], 201);
+        }
+
+        return redirect()->route('payments.index')->with('success', 'Pembayaran berhasil dicatat.');
     }
 
     public function show(Payment $payment)

@@ -10,16 +10,24 @@ class MatchCostService
     /**
      * Hitung dan simpan biaya pertandingan.
      *
-     * total_cost     = venue.price_per_hour * (duration_minutes / 60)
+     * total_cost     = venue/field.price_per_hour * (duration_minutes / 60)
      * cost_per_team  = total_cost / 2
      * cost_per_player = cost_per_team / jumlah pemain yang attended=true (fallback: semua terdaftar → team.player_count)
      */
     public function calculate(FutsalMatch $match): MatchCost
     {
-        $match->loadMissing(['venue', 'matchPlayers', 'teamA']);
+        $match->loadMissing(['venue', 'field', 'matchPlayers', 'teamA']);
 
-        $totalCost   = (int) ($match->venue->price_per_hour * ($match->duration_minutes / 60));
+        $place = $match->field ?? $match->venue;
+
+        if (! $place) {
+            throw new \RuntimeException('Pertandingan belum memiliki lapangan untuk menghitung biaya.');
+        }
+
+        $totalCost   = (int) ($place->price_per_hour * ($match->duration_minutes / 60));
         $costPerTeam = (int) ($totalCost / 2);
+        $dpPerTeam = (int) ceil($costPerTeam * 0.5);
+        $handlingFee = (int) ceil($totalCost * 0.1);
 
         // Prioritas: pemain yang hadir (attended=true) → semua terdaftar → fallback team.player_count
         $attendedCount = $match->matchPlayers
@@ -31,6 +39,7 @@ class MatchCostService
             ? $attendedCount
             : ($match->matchPlayers->where('team_id', $match->team_a_id)->count() ?: ($match->teamA->player_count ?? 5));
 
+        $teamAPlayerCount = max(1, (int) $teamAPlayerCount);
         $costPerPlayer = (int) ($costPerTeam / $teamAPlayerCount);
 
         return MatchCost::updateOrCreate(
@@ -38,7 +47,10 @@ class MatchCostService
             [
                 'total_cost'     => $totalCost,
                 'cost_per_team'  => $costPerTeam,
+                'dp_per_team' => $dpPerTeam,
+                'handling_fee' => $handlingFee,
                 'cost_per_player' => $costPerPlayer,
+                'payment_notes' => 'DP minimal 50% dari biaya per tim. Biaya penanganan 10% untuk pengelola web.',
             ]
         );
     }

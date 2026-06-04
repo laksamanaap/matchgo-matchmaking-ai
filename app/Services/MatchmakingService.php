@@ -345,6 +345,10 @@ class MatchmakingService
         $open = Carbon::parse($start->toDateString().' '.$field->open_time);
         $close = Carbon::parse($start->toDateString().' '.$field->close_time);
 
+        if ($close->lessThanOrEqualTo($open)) {
+            $close->addDay();
+        }
+
         return $start->greaterThanOrEqualTo($open) && $end->lessThanOrEqualTo($close);
     }
 
@@ -382,13 +386,16 @@ class MatchmakingService
         ]);
 
         $totalCost = $field->price_per_hour * $durationHours;
+        $costPerTeam = (int) round($totalCost / 2);
 
         MatchCost::create([
             'match_id' => $match->id,
             'total_cost' => $totalCost,
-            'cost_per_team' => (int) round($totalCost / 2),
+            'cost_per_team' => $costPerTeam,
+            'dp_per_team' => (int) ceil($costPerTeam * 0.5),
+            'handling_fee' => (int) ceil($totalCost * 0.1),
             'cost_per_player' => (int) round($totalCost / max(1, $team->player_count ?: 1)),
-            'payment_notes' => "Auto matchmaking: level {$queue->skill_level}, midpoint {$midpoint['latitude']}, {$midpoint['longitude']}, radius {$queue->radius_km} km, lapangan {$field->name}.",
+            'payment_notes' => "AutoMatching: level {$queue->skill_level}, midpoint {$midpoint['latitude']}, {$midpoint['longitude']}, radius {$queue->radius_km} km, lapangan {$field->name}. DP minimal 50% dari biaya per tim. Biaya penanganan 10% untuk pengelola web.",
         ]);
 
         $now = now();

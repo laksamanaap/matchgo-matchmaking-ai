@@ -2,11 +2,13 @@
 @php
     $navItems = [
         ['label' => 'Tim', 'href' => url('/teams'), 'active' => request()->is('teams*')],
+        ['label' => 'Daftar Pertandingan', 'href' => route('matches.index'), 'active' => request()->routeIs('matches.index') || request()->routeIs('matchmaking.index')],
         ['label' => 'Buat Pertandingan', 'href' => route('matches.create'), 'active' => request()->routeIs('matches.create')],
         ['label' => 'Cari Pertandingan', 'href' => route('matches.take'), 'active' => request()->routeIs('matches.take')],
         ['label' => 'AutoMatching', 'href' => route('matches.auto'), 'active' => request()->routeIs('matches.auto')],
+        ['label' => 'History', 'href' => route('matches.history'), 'active' => request()->routeIs('matches.history')],
+        ['label' => 'Pembayaran', 'href' => route('payments.index'), 'active' => request()->routeIs('payments.*')],
     ];
-    $unreadCount = Auth::user()->unreadNotifications()->count();
 @endphp
 
 <nav class="fixed left-0 right-0 top-0 z-50 border-b border-[#DDEED8] bg-white/90 shadow-sm backdrop-blur-xl">
@@ -20,24 +22,13 @@
 
             <div class="hidden items-center gap-1 rounded-2xl bg-[#F8FCF4] p-1 ring-1 ring-[#DDEED8] md:flex">
                 @foreach($navItems as $item)
-                    <a href="{{ $item['href'] }}" class="rounded-xl px-4 py-2 text-sm font-bold transition {{ $item['active'] ? 'bg-white text-[#0B5D1E] shadow-sm ring-1 ring-[#DDEED8]' : 'text-[#2E7D32] hover:bg-white/70 hover:text-[#0B5D1E]' }}">
+                    <a href="{{ $item['href'] }}" class="rounded-xl px-3 py-2 text-xs font-bold transition xl:px-4 xl:text-sm {{ $item['active'] ? 'bg-white text-[#0B5D1E] shadow-sm ring-1 ring-[#DDEED8]' : 'text-[#2E7D32] hover:bg-white/70 hover:text-[#0B5D1E]' }}">
                         {{ $item['label'] }}
                     </a>
                 @endforeach
             </div>
 
             <div class="hidden items-center gap-3 md:flex">
-                <a href="{{ route('notifications.index') }}" class="relative grid h-10 w-10 place-items-center rounded-2xl text-[#2E7D32] transition hover:bg-[#F1F8E9]">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    @if($unreadCount > 0)
-                        <span class="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#2E8B3C] px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
-                            {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                        </span>
-                    @endif
-                </a>
-
                 <a href="{{ route('profile.show') }}" class="inline-flex items-center gap-3 rounded-2xl bg-[#F8FCF4] px-3 py-2 text-[#0B5D1E] ring-1 ring-[#DDEED8] transition hover:bg-[#F1F8E9]">
                     <span class="h-8 w-8 overflow-hidden rounded-full bg-[#DDF1D8]">
                         @if(Auth::user()->profile_photo)
@@ -71,12 +62,6 @@
                         {{ $item['label'] }}
                     </a>
                 @endforeach
-                <a href="{{ route('notifications.index') }}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-[#2E7D32] hover:bg-[#F1F8E9]">
-                    <span>Notifikasi</span>
-                    @if($unreadCount > 0)
-                        <span class="rounded-full bg-[#2E8B3C] px-2 py-0.5 text-xs text-white">{{ $unreadCount }}</span>
-                    @endif
-                </a>
                 <a href="{{ route('profile.show') }}" class="rounded-2xl px-4 py-3 text-sm font-bold text-[#2E7D32] hover:bg-[#F1F8E9]">Profil</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

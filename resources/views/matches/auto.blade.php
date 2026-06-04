@@ -113,13 +113,13 @@
 
                 @if($activeMatch)
                     @if($activeMatch->status === 'pending')
+                        <div class="mt-3 rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] p-4 text-sm font-bold text-[#1B5E20]">
+                            AutoMatching tidak bisa dibatalkan. Kedua tim wajib membayar DP minimal 50% dari biaya per tim.
+                        </div>
                         <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                            <form method="POST" action="{{ route('matches.auto_reject', $activeMatch) }}" onsubmit="return confirm('Tolak match ini? Slot lapangan akan dilepas.')">
-                                @csrf
-                                <button type="submit" class="w-full rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-base font-black text-red-700 transition hover:bg-red-100">
-                                    Reject
-                                </button>
-                            </form>
+                            <a href="{{ route('matches.show', $activeMatch) }}" class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-5 py-4 text-center text-base font-black text-[#1B5E20] transition hover:bg-[#F1F8E9]">
+                                Detail
+                            </a>
                             <form method="POST" action="{{ route('matches.auto_confirm', $activeMatch) }}">
                                 @csrf
                                 <button type="submit" class="w-full rounded-2xl bg-[#2E8B3C] px-5 py-4 text-base font-black text-white transition hover:bg-[#23742F]">
@@ -156,12 +156,9 @@
                 @endif
 
                 @if($waitingQueue && ! $activeMatch)
-                    <form method="POST" action="{{ route('matches.auto_cancel') }}" class="mt-3">
-                        @csrf
-                        <button class="w-full rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-black text-red-700 transition hover:bg-red-100">
-                            Cancel Queue
-                        </button>
-                    </form>
+                    <div class="mt-3 rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-5 py-3 text-sm font-bold text-[#1B5E20]">
+                        Pencarian AutoMatching sedang berjalan dan tidak bisa dibatalkan.
+                    </div>
                 @endif
             </aside>
         </section>
@@ -207,19 +204,15 @@
             </div>
 
             @if($activeMatch)
-                <div class="mt-6 grid gap-3 sm:grid-cols-3">
+                <div class="mt-6 grid gap-3 sm:grid-cols-2">
                     <a href="{{ route('matches.show', $activeMatch) }}" class="rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-center text-sm font-black text-[#1B5E20]">Detail</a>
                     @if($activeMatch->status === 'pending')
-                        <form method="POST" action="{{ route('matches.auto_reject', $activeMatch) }}">
-                            @csrf
-                            <button class="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700">Reject</button>
-                        </form>
                         <form method="POST" action="{{ route('matches.auto_confirm', $activeMatch) }}">
                             @csrf
                             <button class="w-full rounded-2xl bg-[#2E8B3C] px-4 py-3 text-sm font-black text-white">Accept</button>
                         </form>
                     @else
-                        <button type="button" data-close-modal class="rounded-2xl bg-[#2E8B3C] px-4 py-3 text-sm font-black text-white sm:col-span-2">Tutup</button>
+                        <button type="button" data-close-modal class="rounded-2xl bg-[#2E8B3C] px-4 py-3 text-sm font-black text-white">Tutup</button>
                     @endif
                 </div>
             @endif

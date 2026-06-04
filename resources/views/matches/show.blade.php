@@ -19,7 +19,7 @@
                         <p class="text-white/80 mb-2">{{ $match->match_date->format('d M Y') }} {{ \Carbon\Carbon::parse($match->start_time)->format('H:i') }}</p>
                         <h1 class="text-4xl font-bold">{{ $match->teamA->name }} vs {{ $match->teamB?->name ?? 'Menunggu Lawan' }}</h1>
                     </div>
-                    @if($match->status === 'pending' && (Auth::id() === $match->teamA->owner_id || Auth::id() === $match->teamB?->owner_id))
+                    @if($match->status === 'pending' && ! $match->isAutoMatch() && (Auth::id() === $match->teamA->owner_id || Auth::id() === $match->teamB?->owner_id))
                         <div class="flex gap-3">
                             <form method="POST" action="{{ route('matches.auto_reject', $match) }}" class="inline">
                                 @csrf
@@ -34,7 +34,7 @@
                                 </button>
                             </form>
                         </div>
-                    @elseif(in_array($match->status, ['scheduled', 'confirmed'], true) && (Auth::id() === $match->teamA->owner_id || Auth::id() === $match->teamB?->owner_id))
+                    @elseif(in_array($match->status, ['scheduled', 'confirmed'], true) && ! $match->isAutoMatch() && (Auth::id() === $match->teamA->owner_id || Auth::id() === $match->teamB?->owner_id))
                         <form method="POST" action="{{ route('matches.cancel', $match) }}" class="inline" onsubmit="return confirm('Batalkan pertandingan?')">
                             @csrf
                             <button type="submit" class="px-6 py-3 rounded-2xl bg-red-500/80 text-white font-semibold hover:bg-red-600 transition">
@@ -164,6 +164,14 @@
                             <div class="flex justify-between items-center pb-4 border-b border-[#81C784]/20">
                                 <p class="text-[#2E7D32]/80">Per Tim</p>
                                 <p class="font-bold text-[#1B5E20] text-lg">Rp {{ number_format($match->matchCost->cost_per_team) }}</p>
+                            </div>
+                            <div class="flex justify-between items-center pb-4 border-b border-[#81C784]/20">
+                                <p class="text-[#2E7D32]/80">DP Minimal Tiap Tim</p>
+                                <p class="font-bold text-[#1B5E20] text-lg">Rp {{ number_format($match->matchCost->dp_per_team ?? (int) ceil($match->matchCost->cost_per_team * 0.5)) }}</p>
+                            </div>
+                            <div class="flex justify-between items-center pb-4 border-b border-[#81C784]/20">
+                                <p class="text-[#2E7D32]/80">Biaya Penanganan Web</p>
+                                <p class="font-bold text-[#1B5E20] text-lg">Rp {{ number_format($match->matchCost->handling_fee ?? (int) ceil($match->matchCost->total_cost * 0.1)) }}</p>
                             </div>
                             <p class="text-sm text-[#2E7D32]/80 mt-4">{{ $match->matchCost->payment_notes }}</p>
                         </div>

@@ -53,11 +53,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/match-requests/{matchRequest}/cancel', [MatchRequestController::class, 'cancel'])->name('match_requests.cancel');
 
     Route::get('/matchmaking', [MatchController::class, 'index'])->name('matchmaking.index');
-    Route::get('/matches', fn () => redirect()->route('matches.take'))->name('matches.index');
+    Route::get('/matches', [MatchController::class, 'index'])->name('matches.index');
     Route::get('/matches/create', [MatchController::class, 'create'])->name('matches.create');
     Route::get('/matches/take', [MatchController::class, 'take'])->name('matches.take');
     Route::get('/matches/auto', [MatchController::class, 'auto'])->name('matches.auto');
     Route::get('/matches/auto/status', [MatchController::class, 'autoStatus'])->name('matches.auto_status');
+    Route::get('/matches/history', [MatchController::class, 'history'])->name('matches.history');
     Route::post('/matches/auto', [MatchController::class, 'autoStore'])->name('matches.auto_store');
     Route::post('/matches/auto/cancel', [MatchController::class, 'autoCancel'])->name('matches.auto_cancel');
     Route::post('/matches', [MatchController::class, 'store'])->name('matches.store');

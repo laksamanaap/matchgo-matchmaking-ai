@@ -98,7 +98,7 @@
             </div>
         </div>
 
-        <div class="mb-8 grid gap-4 md:grid-cols-3">
+        <div class="mb-8 grid gap-4 md:grid-cols-2">
             <div class="rounded-2xl bg-white p-6 shadow">
                 <p class="text-sm text-[#2E7D32]/70">Pemain</p>
                 <p class="mt-2 text-3xl font-bold text-[#1B5E20]">{{ $team?->activePlayerCount() ?? 0 }}</p>
@@ -106,10 +106,6 @@
             <div class="rounded-2xl bg-white p-6 shadow">
                 <p class="text-sm text-[#2E7D32]/70">Pertandingan</p>
                 <p class="mt-2 text-3xl font-bold text-[#1B5E20]">{{ $teamMatchesCount }}</p>
-            </div>
-            <div class="rounded-2xl bg-white p-6 shadow">
-                <p class="text-sm text-[#2E7D32]/70">Notifikasi</p>
-                <p class="mt-2 text-3xl font-bold text-[#1B5E20]">{{ $user->unreadNotifications()->count() }}</p>
             </div>
         </div>
 

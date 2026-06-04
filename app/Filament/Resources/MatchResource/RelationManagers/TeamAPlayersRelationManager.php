@@ -22,6 +22,17 @@ class TeamAPlayersRelationManager extends RelationManager
 {
     protected static string $relationship = 'matchPlayers';
 
+    public static function canViewForRecord(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): bool
+    {
+        return $ownerRecord->team_a_id !== null;
+    }
+
+    protected function canManagePlayers(): bool
+    {
+        return $this->getOwnerRecord()->team_a_id !== null
+            && auth()->user()?->hasRole(['admin', 'super_admin']);
+    }
+
     public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
     {
         return '🔵 Tim A — ' . ($ownerRecord->teamA?->name ?? 'Tim A');
@@ -72,19 +83,26 @@ class TeamAPlayersRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->label('Tambah Pemain Tim A')
+                    ->visible(fn (): bool => $this->canManagePlayers())
                     ->mutateFormDataUsing(function (array $data) use ($match): array {
                         $data['team_id'] = $match->team_a_id;
                         return $data;
                     }),
             ])
             ->actions([
-                EditAction::make()->label('Edit'),
-                DeleteAction::make()->label('Hapus'),
+                EditAction::make()
+                    ->label('Edit')
+                    ->visible(fn (): bool => $this->canManagePlayers()),
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->visible(fn (): bool => $this->canManagePlayers()),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => $this->canManagePlayers()),
+                ])
+                    ->visible(fn (): bool => $this->canManagePlayers()),
             ]);
     }
 }

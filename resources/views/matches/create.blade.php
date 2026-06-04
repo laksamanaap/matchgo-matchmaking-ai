@@ -33,7 +33,7 @@
                         <p class="text-sm text-[#4B8B43]">Tim Pembuat</p>
                         <div class="mt-3 flex items-center gap-4">
                             @if($team->logo_url)
-                                <img src="{{ $team->logo_url }}" alt="{{ $team->name }}" class="h-16 w-16 rounded-2xl border border-[#C8E6C9] object-cover">
+                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-16 w-16 rounded-2xl border border-[#C8E6C9] object-cover">
                             @else
                                 <div class="grid h-16 w-16 place-items-center rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] text-xl font-black text-[#0B5D1E]">
                                     {{ strtoupper(substr($team->name, 0, 1)) }}
@@ -120,48 +120,35 @@
             </div>
 
             <section class="mt-10 rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10 sm:p-8">
-                <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                    <div>
-                        <h2 class="text-2xl font-black text-[#0B5D1E]">Daftar Pertandinganmu</h2>
-                        <p class="text-[#4B8B43]">Pertandingan yang dibuat oleh tim kamu.</p>
-                    </div>
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black text-[#0B5D1E]">Tantangan Kamu</h2>
+                    <p class="text-[#4B8B43]">Pertandingan terbuka yang dibuat tim kamu dan masih menunggu lawan.</p>
                 </div>
 
-                @if($createdMatches->count() > 0)
-                    <div class="grid gap-4">
-                        @foreach($createdMatches as $match)
+                @if($myChallenges->count() > 0)
+                    <div class="grid gap-4 md:grid-cols-2">
+                        @foreach($myChallenges as $challenge)
                             <div class="rounded-2xl border border-[#DDEED8] bg-white p-5 transition hover:bg-[#F8FCF4]">
-                                <div class="grid gap-4 lg:grid-cols-[1.2fr_0.9fr_auto] lg:items-center">
-                                    <div class="flex flex-wrap items-center gap-3">
-                                        <div class="grid h-12 w-12 place-items-center rounded-2xl border border-[#C8E6C9] bg-[#F1F8E9] text-sm font-black text-[#0B5D1E]">
-                                            {{ strtoupper(substr($team->name, 0, 1)) }}
-                                        </div>
-                                        <div>
-                                            <p class="font-black text-[#0B5D1E]">{{ $team->name }} vs {{ $match->teamB?->name ?? 'Menunggu Lawan' }}</p>
-                                            <p class="text-sm text-[#4B8B43]">{{ $match->field?->name ?? 'Lapangan belum dipilih' }}</p>
-                                        </div>
-                                    </div>
-
+                                <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
                                     <div>
-                                        <p class="text-sm font-bold text-[#0B5D1E]">{{ $match->match_date->format('d M Y') }} pukul {{ \Carbon\Carbon::parse($match->start_time)->format('H:i') }}</p>
-                                        <p class="text-sm text-[#4B8B43]">{{ $match->duration_minutes }} menit</p>
+                                        <p class="font-black text-[#0B5D1E]">{{ $challenge->field?->name ?? 'Lapangan belum dipilih' }}</p>
+                                        <p class="text-sm text-[#4B8B43]">{{ $challenge->match_date->format('d M Y') }} pukul {{ \Carbon\Carbon::parse($challenge->start_time)->format('H:i') }}</p>
+                                        <p class="text-sm text-[#4B8B43]">{{ $challenge->duration_minutes }} menit</p>
                                     </div>
 
                                     <div class="flex flex-wrap items-center gap-2 lg:justify-end">
-                                        <span class="rounded-full px-3 py-1.5 text-xs font-bold {{ $match->status === 'completed' ? 'bg-green-100 text-green-700' : ($match->status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-[#F1F8E9] text-[#2E7D32]') }}">
-                                            {{ $match->team_b_id ? ucfirst($match->status) : 'Terbuka' }}
+                                        <span class="rounded-full bg-[#F1F8E9] px-3 py-1.5 text-xs font-bold text-[#2E7D32]">
+                                            Menunggu Lawan
                                         </span>
-                                        <a href="{{ route('matches.show', $match) }}" class="rounded-xl bg-[#F1F8E9] px-4 py-2 text-sm font-bold text-[#2E7D32] transition hover:bg-[#E4F2DE]">
+                                        <a href="{{ route('matches.show', $challenge) }}" class="rounded-xl bg-[#F1F8E9] px-4 py-2 text-sm font-bold text-[#2E7D32] transition hover:bg-[#E4F2DE]">
                                             Detail
                                         </a>
-                                        @if($match->status === 'scheduled')
-                                            <form method="POST" action="{{ route('matches.cancel', $match) }}" onsubmit="return confirm('Batalkan tantangan ini?')">
-                                                @csrf
-                                                <button type="submit" class="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50">
-                                                    Batalkan
-                                                </button>
-                                            </form>
-                                        @endif
+                                        <form method="POST" action="{{ route('matches.cancel', $challenge) }}" onsubmit="return confirm('Batalkan tantangan ini?')">
+                                            @csrf
+                                            <button type="submit" class="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50">
+                                                Batalkan
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -169,10 +156,11 @@
                     </div>
                 @else
                     <div class="rounded-2xl border border-[#C8E6C9] bg-[#F1F8E9] p-6 text-center text-[#4B8B43]">
-                        Belum ada tantangan yang dibuat.
+                        Belum ada tantangan aktif dari tim kamu.
                     </div>
                 @endif
             </section>
+
         </section>
     </main>
 </div>
