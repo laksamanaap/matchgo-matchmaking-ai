@@ -5,14 +5,6 @@
     <x-navbar />
 
     <main class="container mx-auto px-6 pb-12 pt-24">
-        @if($errors->any())
-            <div class="mx-auto mb-6 max-w-6xl rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                @foreach($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
-
         <section class="mx-auto max-w-6xl">
             <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>

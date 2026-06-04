@@ -5,22 +5,6 @@
     <x-navbar />
     
     <div class="pt-24 pb-12 container mx-auto px-6">
-        @if(session('success'))
-            <div class="mb-6 rounded-2xl bg-green-50 border border-green-200 p-4 text-green-700">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-red-700">
-                <ul class="list-disc list-inside">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         @if($team)
             {{-- Tim Sudah Ada --}}
             <div class="bg-white rounded-3xl shadow-lg p-8">
