@@ -77,7 +77,7 @@
                     </div>
 
                     <button type="submit" class="mt-8 w-full rounded-2xl bg-[#2E8B3C] px-5 py-4 text-base font-black text-white shadow-md shadow-[#1B5E20]/15 transition hover:bg-[#23742F]">
-                        Buat Pertandingan
+                        Buat Pertandingan & Bayar DP
                     </button>
                 </form>
 
@@ -94,8 +94,9 @@
                                 <p id="cost_per_team" class="mt-1 text-3xl font-black text-[#0B5D1E]">Rp 0</p>
                             </div>
                             <div class="rounded-2xl bg-[#F1F8E9] p-4">
-                                <p class="text-xs font-semibold text-[#4B8B43]">Status Awal</p>
-                                <p class="mt-1 text-2xl font-black text-[#0B5D1E]">Terbuka</p>
+                                <p class="text-xs font-semibold text-[#4B8B43]">Wajib Dibayar Sekarang</p>
+                                <p id="pay_now" class="mt-1 text-3xl font-black text-[#0B5D1E]">Rp 0</p>
+                                <p class="mt-1 text-xs font-semibold text-[#4B8B43]">DP 50% + biaya pengelola web 10%</p>
                             </div>
                         </div>
                     </div>
@@ -103,9 +104,9 @@
                     <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10">
                         <p class="text-sm font-bold text-[#1B5E20]">Cara kerja tantangan</p>
                         <div class="mt-4 space-y-3 text-sm text-[#4B8B43]">
-                            <p>1. Captain membuat jadwal dan memilih lapangan.</p>
+                            <p>1. Captain membuat jadwal, memilih lapangan, lalu membayar DP 50% + biaya pengelola web 10%.</p>
                             <p>2. Tantangan muncul di halaman Cari Pertandingan.</p>
-                            <p>3. Tim lawan mengambil tantangan, lalu biaya dibagi untuk dua tim.</p>
+                            <p>3. Pembatalan bisa direfund maksimal 6 jam setelah pertandingan dibuat. Lewat dari itu DP hangus.</p>
                         </div>
                     </div>
                 </aside>
@@ -171,9 +172,13 @@
         const price = Number(selected?.dataset.price || 0);
         const hours = Math.ceil(Number(duration.value || 0) / 60);
         const total = price * hours;
+        const costPerTeam = Math.round(total / 2);
+        const dp = Math.ceil(costPerTeam * 0.5);
+        const webFee = Math.ceil(total * 0.1);
 
         document.getElementById('total_cost').textContent = rupiah(total);
-        document.getElementById('cost_per_team').textContent = rupiah(Math.round(total / 2));
+        document.getElementById('cost_per_team').textContent = rupiah(costPerTeam);
+        document.getElementById('pay_now').textContent = rupiah(dp + webFee);
     };
 
     document.getElementById('field_id').addEventListener('change', updateCostPreview);

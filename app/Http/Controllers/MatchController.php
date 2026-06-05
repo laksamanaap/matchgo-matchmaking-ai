@@ -8,9 +8,11 @@ use App\Models\Field;
 use App\Models\FutsalMatch;
 use App\Models\MatchCost;
 use App\Models\MatchRequest;
+use App\Models\Payment;
 use App\Models\Team;
 use App\Notifications\MatchNotification;
 use App\Services\MatchmakingService;
+use App\Services\PaymentAmountService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -265,7 +267,7 @@ class MatchController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, PaymentAmountService $paymentAmounts)
     {
         $request->validate([
             'field_id' => ['required', 'exists:fields,id'],
@@ -322,7 +324,7 @@ class MatchController extends Controller
             return back()->withErrors(['message' => 'Lapangan tidak tersedia pada jam tersebut.']);
         }
 
-        $match = DB::transaction(function () use ($team, $field, $matchDate, $startTime, $request, $bookingStartTime, $durationHours) {
+        $match = DB::transaction(function () use ($team, $field, $matchDate, $startTime, $request, $bookingStartTime, $durationHours, $paymentAmounts) {
             $match = FutsalMatch::create([
                 'match_request_id' => null,
                 'venue_id' => null,
@@ -335,7 +337,7 @@ class MatchController extends Controller
                 'status' => 'scheduled',
             ]);
 
-            Booking::create([
+            $booking = Booking::create([
                 'field_id' => $field->id,
                 'match_id' => $match->id,
                 'start_at' => $bookingStartTime,
@@ -345,14 +347,23 @@ class MatchController extends Controller
 
             $totalCost = $field->price_per_hour * $durationHours;
 
-            MatchCost::create([
+            $matchCost = MatchCost::create([
                 'match_id' => $match->id,
                 'total_cost' => $totalCost,
                 'cost_per_team' => (int) round($totalCost / 2),
                 'dp_per_team' => (int) ceil(($totalCost / 2) * 0.5),
                 'handling_fee' => (int) ceil($totalCost * 0.1),
                 'cost_per_player' => (int) round($totalCost / max(1, $team->player_count ?: 1)),
-                'payment_notes' => "Biaya lapangan {$field->name} dibagi 2 tim. DP minimal 50% dari biaya per tim. Biaya penanganan 10% untuk pengelola web.",
+                'payment_notes' => "Biaya lapangan {$field->name} dibagi 2 tim. DP 50% dari biaya per tim wajib dibayar saat pertandingan dibuat. Biaya pengelola web 10%. Refund maksimal 6 jam setelah pertandingan dibuat.",
+            ]);
+
+            Payment::updateOrCreate([
+                'booking_id' => $booking->id,
+                'team_id' => $team->id,
+            ], [
+                'amount' => $paymentAmounts->regularMatchAmount($matchCost),
+                'payment_method' => 'bank_transfer',
+                'payment_status' => 'paid',
             ]);
 
             return $match;
@@ -364,7 +375,7 @@ class MatchController extends Controller
             $match->id
         ));
 
-        return redirect()->route('matches.show', $match)->with('success', 'Tantangan dibuat, lapangan sudah dibooking, dan biaya sudah dibagi 2.');
+        return redirect()->route('matches.show', $match)->with('success', 'Tantangan dibuat, lapangan sudah dibooking, dan DP 50% + biaya pengelola web 10% sudah tercatat dibayar.');
     }
 
     public function accept(FutsalMatch $match)
@@ -581,7 +592,7 @@ class MatchController extends Controller
 
         if ($match->isAutoMatch()) {
             return redirect()->route('matches.show', $match)
-                ->withErrors(['message' => 'Match AutoMatching tidak bisa dibatalkan. Kedua tim wajib membayar DP minimal 50%.']);
+                ->withErrors(['message' => 'Match AutoMatching tidak bisa dibatalkan. Kedua tim wajib melunasi 100% biaya per tim + biaya admin 10%.']);
         }
 
         if (! in_array($match->status, ['pending', 'confirmed'], true)) {
@@ -627,15 +638,24 @@ class MatchController extends Controller
 
         if ($match->isAutoMatch()) {
             return redirect()->route('matches.show', $match)
-                ->withErrors(['message' => 'Match AutoMatching tidak bisa dibatalkan. Kedua tim wajib membayar DP minimal 50%.']);
+                ->withErrors(['message' => 'Match AutoMatching tidak bisa dibatalkan. Kedua tim wajib melunasi 100% biaya per tim + biaya admin 10%.']);
         }
 
         if ($match->status === 'cancelled') {
             return redirect()->route('matches.take')->with('success', 'Pertandingan sudah dibatalkan.');
         }
 
+        $match->loadMissing('booking.payments');
+        $refundAllowed = $match->created_at?->greaterThanOrEqualTo(now()->subHours(6)) ?? false;
+
         $match->update(['status' => 'cancelled']);
         $match->booking?->update(['status' => 'cancelled']);
+
+        if ($refundAllowed) {
+            $match->booking?->payments()
+                ->where('payment_status', 'paid')
+                ->update(['payment_status' => 'refunded']);
+        }
 
         $match->teamA->owner->notify(new MatchNotification(
             'match_cancelled',
@@ -651,7 +671,11 @@ class MatchController extends Controller
             ));
         }
 
-        return redirect()->route('matches.take')->with('success', 'Pertandingan berhasil dibatalkan.');
+        $message = $refundAllowed
+            ? 'Pertandingan berhasil dibatalkan. DP yang sudah dibayar ditandai refund karena pembatalan masih dalam 6 jam setelah pertandingan dibuat.'
+            : 'Pertandingan berhasil dibatalkan. DP hangus karena pembatalan dilakukan lebih dari 6 jam setelah pertandingan dibuat.';
+
+        return redirect()->route('matches.take')->with('success', $message);
     }
 
     protected function authorizeMatchView(FutsalMatch $match): void

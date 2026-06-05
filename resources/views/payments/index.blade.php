@@ -23,7 +23,7 @@
             <div class="mb-6">
                 <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#4B8B43]">Pembayaran</p>
                 <h1 class="mt-2 text-4xl font-black text-[#0B5D1E]">Tagihan pertandingan</h1>
-                <p class="mt-2 max-w-2xl text-[#4B8B43]">Bayar DP minimal dan biaya penanganan untuk pertandingan tim kamu.</p>
+                <p class="mt-2 max-w-2xl text-[#4B8B43]">Pertandingan biasa memakai DP 50% + biaya pengelola web 10%. AutoMatching wajib lunas 100% + biaya admin 10%.</p>
             </div>
 
             @if($matches->count() > 0)
@@ -34,9 +34,12 @@
                             $cost = $match->matchCost;
                             $opponent = $match->team_a_id === $team->id ? $match->teamB : $match->teamA;
                             $payment = $booking?->payments?->firstWhere('team_id', $team->id);
-                            $dp = $cost?->dp_per_team ?? (int) ceil(($cost?->cost_per_team ?? 0) * 0.5);
+                            $isAutoMatch = $match->isAutoMatch();
+                            $basePayment = $isAutoMatch
+                                ? ($cost?->cost_per_team ?? 0)
+                                : ($cost?->dp_per_team ?? (int) ceil(($cost?->cost_per_team ?? 0) * 0.5));
                             $fee = $cost?->handling_fee ?? (int) ceil(($cost?->total_cost ?? 0) * 0.1);
-                            $amount = $dp + $fee;
+                            $amount = $basePayment + $fee;
                         @endphp
 
                         <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10">
@@ -45,15 +48,18 @@
                                     <p class="text-sm font-bold text-[#4B8B43]">{{ $match->match_date->format('d M Y') }} pukul {{ \Carbon\Carbon::parse($match->start_time)->format('H:i') }}</p>
                                     <h2 class="mt-1 text-2xl font-black text-[#0B5D1E]">vs {{ $opponent?->name ?? 'Tim lawan' }}</h2>
                                     <p class="mt-1 text-sm text-[#4B8B43]">{{ $match->field?->name ?? $booking?->field?->name ?? 'Lapangan belum tersedia' }}</p>
+                                    @if($isAutoMatch)
+                                        <span class="mt-3 inline-flex rounded-full bg-[#E4F2DE] px-3 py-1 text-xs font-black text-[#2E7D32]">AutoMatching</span>
+                                    @endif
                                 </div>
 
                                 <div class="grid gap-2 rounded-2xl bg-[#F1F8E9] p-4">
                                     <div class="flex justify-between gap-4 text-sm">
-                                        <span class="text-[#4B8B43]">DP Minimal</span>
-                                        <strong class="text-[#0B5D1E]">Rp {{ number_format($dp, 0, ',', '.') }}</strong>
+                                        <span class="text-[#4B8B43]">{{ $isAutoMatch ? 'Pelunasan 100%' : 'DP 50%' }}</span>
+                                        <strong class="text-[#0B5D1E]">Rp {{ number_format($basePayment, 0, ',', '.') }}</strong>
                                     </div>
                                     <div class="flex justify-between gap-4 text-sm">
-                                        <span class="text-[#4B8B43]">Biaya Penanganan</span>
+                                        <span class="text-[#4B8B43]">{{ $isAutoMatch ? 'Biaya Admin 10%' : 'Biaya Pengelola Web 10%' }}</span>
                                         <strong class="text-[#0B5D1E]">Rp {{ number_format($fee, 0, ',', '.') }}</strong>
                                     </div>
                                     <div class="flex justify-between gap-4 border-t border-[#C8E6C9] pt-2 text-sm">
@@ -66,6 +72,10 @@
                                     @if($payment?->payment_status === 'paid')
                                         <div class="rounded-2xl bg-green-50 px-5 py-4 text-center font-black text-green-700 ring-1 ring-green-200">
                                             Sudah Dibayar
+                                        </div>
+                                    @elseif($payment?->payment_status === 'refunded')
+                                        <div class="rounded-2xl bg-blue-50 px-5 py-4 text-center font-black text-blue-700 ring-1 ring-blue-200">
+                                            Sudah Direfund
                                         </div>
                                     @elseif($booking && $amount > 0)
                                         <form method="POST" action="{{ route('payments.store') }}" class="grid gap-3">

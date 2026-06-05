@@ -160,11 +160,11 @@
                                 <p class="font-bold text-[#1B5E20] text-lg">Rp {{ number_format($match->matchCost->cost_per_team) }}</p>
                             </div>
                             <div class="flex justify-between items-center pb-4 border-b border-[#81C784]/20">
-                                <p class="text-[#2E7D32]/80">DP Minimal Tiap Tim</p>
-                                <p class="font-bold text-[#1B5E20] text-lg">Rp {{ number_format($match->matchCost->dp_per_team ?? (int) ceil($match->matchCost->cost_per_team * 0.5)) }}</p>
+                                <p class="text-[#2E7D32]/80">{{ $match->isAutoMatch() ? 'Pelunasan 100% Tiap Tim' : 'DP 50% Tiap Tim' }}</p>
+                                <p class="font-bold text-[#1B5E20] text-lg">Rp {{ number_format($match->isAutoMatch() ? $match->matchCost->cost_per_team : ($match->matchCost->dp_per_team ?? (int) ceil($match->matchCost->cost_per_team * 0.5))) }}</p>
                             </div>
                             <div class="flex justify-between items-center pb-4 border-b border-[#81C784]/20">
-                                <p class="text-[#2E7D32]/80">Biaya Penanganan Web</p>
+                                <p class="text-[#2E7D32]/80">{{ $match->isAutoMatch() ? 'Biaya Admin 10%' : 'Biaya Pengelola Web 10%' }}</p>
                                 <p class="font-bold text-[#1B5E20] text-lg">Rp {{ number_format($match->matchCost->handling_fee ?? (int) ceil($match->matchCost->total_cost * 0.1)) }}</p>
                             </div>
                             <p class="text-sm text-[#2E7D32]/80 mt-4">{{ $match->matchCost->payment_notes }}</p>

@@ -100,7 +100,7 @@
                 @if($activeMatch)
                     @if($activeMatch->status === 'pending')
                         <div class="mt-3 rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] p-4 text-sm font-bold text-[#1B5E20]">
-                            AutoMatching tidak bisa dibatalkan. Kedua tim wajib membayar DP minimal 50% dari biaya per tim.
+                            AutoMatching tidak bisa dibatalkan. Kedua tim wajib melunasi 100% biaya per tim + biaya admin 10%.
                         </div>
                         <div class="mt-3 grid gap-3 sm:grid-cols-2">
                             <a href="{{ route('matches.show', $activeMatch) }}" class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-5 py-4 text-center text-base font-black text-[#1B5E20] transition hover:bg-[#F1F8E9]">
@@ -155,7 +155,7 @@
             <p class="text-xs font-black uppercase tracking-[0.2em] text-[#2E7D32]">Mulai Matchmaking</p>
             <h2 class="mt-2 text-2xl font-black">Mulai cari lawan sekarang?</h2>
             <p class="mt-3 text-sm leading-6 text-[#4B8B43]">
-                Setelah dikonfirmasi, tim kamu masuk queue selama 5 menit. Kalau lawan cocok ditemukan, sistem otomatis membuat jadwal di jam penuh +3 jam dan memilih lapangan netral.
+                Setelah dikonfirmasi, tim kamu masuk queue selama 5 menit. Kalau lawan cocok ditemukan, sistem otomatis membuat jadwal di jam penuh +3 jam, memilih lapangan netral, dan mencatat pelunasan 100% + biaya admin 10%.
             </p>
             <div class="mt-6 grid gap-3 sm:grid-cols-2">
                 <button type="button" data-close-start-modal class="rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-sm font-black text-[#1B5E20]">

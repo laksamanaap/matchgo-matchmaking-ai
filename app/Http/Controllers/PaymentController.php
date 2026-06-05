@@ -6,6 +6,7 @@ use App\Http\Requests\PaymentRequest;
 use App\Models\Payment;
 use App\Models\Booking;
 use App\Notifications\PaymentNotification;
+use App\Services\PaymentAmountService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,7 +36,6 @@ class PaymentController extends Controller
         }
 
         $matches = $team->matchesAsTeamA()
-            ->whereNotNull('team_b_id')
             ->with(['teamA', 'teamB', 'field', 'booking.payments', 'matchCost'])
             ->get()
             ->merge(
@@ -52,7 +52,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, PaymentAmountService $paymentAmounts)
     {
         $data = $request->validate([
             'booking_id' => ['required', 'exists:bookings,id'],
@@ -72,8 +72,7 @@ class PaymentController extends Controller
         }
 
         $matchCost = $booking->match->matchCost;
-        $amount = (float) (($matchCost?->dp_per_team ?? (int) ceil(($matchCost?->cost_per_team ?? 0) * 0.5))
-            + ($matchCost?->handling_fee ?? (int) ceil(($matchCost?->total_cost ?? 0) * 0.1)));
+        $amount = (float) $paymentAmounts->amountForMatch($booking->match, $matchCost);
 
         $payment = Payment::updateOrCreate(
             [
