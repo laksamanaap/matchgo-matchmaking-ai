@@ -22,7 +22,15 @@ class FutsalMatch extends Model
     protected function casts(): array
     {
         return [
-            'match_date' => 'date',
+            'match_request_id' => 'integer',
+            'venue_id'         => 'integer',
+            'field_id'         => 'integer',
+            'team_a_id'        => 'integer',
+            'team_b_id'        => 'integer',
+            'duration_minutes' => 'integer',
+            'score_a'          => 'integer',
+            'score_b'          => 'integer',
+            'match_date'       => 'date',
         ];
     }
 

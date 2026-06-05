@@ -15,7 +15,9 @@ class MatchRequest extends Model
     protected function casts(): array
     {
         return [
-            'preferred_date' => 'date',
+            'requester_team_id' => 'integer',
+            'opponent_team_id'  => 'integer',
+            'preferred_date'    => 'date',
         ];
     }
 
