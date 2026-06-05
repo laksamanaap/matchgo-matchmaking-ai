@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\TeamRequest;
 use App\Models\Team;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -82,11 +83,25 @@ class TeamController extends Controller
     {
         $this->authorizeTeam($team);
 
-        if ($team->logo_url) {
-            Storage::disk('public')->delete($team->logo_url);
+        if ($team->matchesAsTeamA()->exists() || $team->matchesAsTeamB()->exists()) {
+            return back()->withErrors([
+                'message' => 'Tim tidak bisa dihapus karena sudah memiliki data pertandingan. Batalkan atau selesaikan data pertandingan terkait terlebih dahulu.',
+            ]);
         }
 
-        $team->delete();
+        $logoPath = $team->logo_url;
+
+        try {
+            $team->delete();
+        } catch (QueryException) {
+            return back()->withErrors([
+                'message' => 'Tim tidak bisa dihapus karena masih terhubung dengan data lain di sistem.',
+            ]);
+        }
+
+        if ($logoPath) {
+            Storage::disk('public')->delete($logoPath);
+        }
 
         return redirect()->route('teams.index')->with('success', 'Tim berhasil dihapus.');
     }
