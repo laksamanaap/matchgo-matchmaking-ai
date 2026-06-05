@@ -20,8 +20,10 @@ class Team extends Model
     protected function casts(): array
     {
         return [
-            'latitude'  => 'decimal:8',
-            'longitude' => 'decimal:8',
+            'owner_id'     => 'integer',
+            'player_count' => 'integer',
+            'latitude'     => 'decimal:8',
+            'longitude'    => 'decimal:8',
         ];
     }
 
