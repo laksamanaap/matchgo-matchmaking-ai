@@ -5,6 +5,20 @@
     <x-navbar />
     
     <div class="pt-24 pb-12 container mx-auto px-6">
+        @if(session('success'))
+            <div class="mb-6 rounded-2xl border border-[#C8E6C9] bg-white p-4 text-sm font-bold text-[#1B5E20] shadow-sm">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if($errors->any() && ! in_array(old('_form'), ['team', 'player', 'player_edit'], true))
+            <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
+
         <div class="grid gap-8">
             {{-- Team Header --}}
             <div class="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] rounded-3xl shadow-lg p-8 text-white">

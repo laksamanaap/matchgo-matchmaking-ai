@@ -173,7 +173,7 @@ class MatchController extends Controller
             ->where('team_id', $team->id)
             ->where('status', 'matched')
             ->whereNotNull('match_id')
-            ->whereHas('match', fn ($query) => $query->whereIn('status', ['pending', 'confirmed']))
+            ->whereHas('match', fn ($query) => $query->where('status', 'pending'))
             ->with('match.teamA', 'match.teamB', 'match.field', 'match.matchCost')
             ->latest('matched_at')
             ->first();
@@ -215,7 +215,7 @@ class MatchController extends Controller
         }
 
         if (! $team->hasMinimumPlayers()) {
-            return redirect()->route('teams.show', $team)
+            return redirect()->route('teams.index')
                 ->withErrors(['message' => 'Minimal 5 pemain diperlukan untuk memakai fitur Buat Pertandingan.']);
         }
 
@@ -534,7 +534,7 @@ class MatchController extends Controller
             ->where('team_id', $team->id)
             ->where('status', 'matched')
             ->whereNotNull('match_id')
-            ->whereHas('match', fn ($query) => $query->whereIn('status', ['pending', 'confirmed']))
+            ->whereHas('match', fn ($query) => $query->where('status', 'pending'))
             ->with('match.teamA', 'match.teamB', 'match.field', 'match.matchCost')
             ->latest('matched_at')
             ->first();

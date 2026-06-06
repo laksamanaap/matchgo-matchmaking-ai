@@ -13,6 +13,13 @@ class TeamController extends Controller
     public function index()
     {
         $userTeam = Auth::user()->team;
+
+        if ($userTeam) {
+            return view('teams.show', [
+                'team' => $userTeam->load(['players', 'sentMatchRequests', 'receivedMatchRequests']),
+            ]);
+        }
+
         return view('teams.index', ['team' => $userTeam]);
     }
 
@@ -42,14 +49,14 @@ class TeamController extends Controller
             'verification_status' => 'pending',
         ]);
 
-        return redirect()->route('teams.show', $team)->with('success', 'Tim berhasil dibuat.');
+        return redirect()->route('teams.index')->with('success', 'Tim berhasil dibuat.');
     }
 
     public function show(Team $team)
     {
         $this->authorizeTeam($team);
 
-        return view('teams.show', ['team' => $team->load(['players', 'sentMatchRequests', 'receivedMatchRequests'])]);
+        return redirect()->route('teams.index');
     }
 
     public function update(TeamRequest $request, Team $team)
@@ -76,7 +83,7 @@ class TeamController extends Controller
 
         $team->update($data);
 
-        return redirect()->route('teams.show', $team)->with('success', 'Tim berhasil diperbarui.');
+        return redirect()->route('teams.index')->with('success', 'Tim berhasil diperbarui.');
     }
 
     public function destroy(Team $team)

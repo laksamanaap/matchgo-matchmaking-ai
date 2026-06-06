@@ -24,8 +24,8 @@
                             <p class="text-[#2E7D32]/80 mt-2">{{ $team->description }}</p>
                         </div>
                     </div>
-                    <a href="{{ route('teams.show', $team) }}" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-semibold hover:shadow-lg transition">
-                        Lihat Detail
+                    <a href="{{ route('teams.index') }}" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-semibold hover:shadow-lg transition">
+                        Kelola Tim
                     </a>
                 </div>
 

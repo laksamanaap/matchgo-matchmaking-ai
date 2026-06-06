@@ -8,6 +8,10 @@
     <title>{{ $title ?? 'MATCHGO — Find Your Futsal Rival' }}</title>
     <meta name="description" content="Platform matchmaking futsal — temukan lawan bermain, tentukan lapangan, dan bagi biaya secara transparan.">
 
+    <link rel="icon" type="image/svg+xml" href="{{ asset('matchgo-logo.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('matchgo-logo.svg') }}">
+    <meta name="theme-color" content="#6F945D">
+
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
