@@ -419,14 +419,15 @@ class MatchController extends Controller
         }
 
         $match->update(['team_b_id' => $team->id]);
+        $match->loadMissing(['teamA.owner', 'matchCost']);
 
-        $match->teamA->owner->notify(new MatchNotification(
+        $match->teamA?->owner?->notify(new MatchNotification(
             'challenge_accepted',
             "{$team->name} menerima tantangan pertandingan kamu. Buka detail match untuk melihat jadwal dan lapangan.",
             $match->id
         ));
 
-        $team->owner->notify(new MatchNotification(
+        $team->owner?->notify(new MatchNotification(
             'challenge_accepted',
             "Kamu berhasil menerima tantangan dari {$match->teamA->name}. Biaya per tim: Rp " . number_format($match->matchCost?->cost_per_team ?? 0),
             $match->id

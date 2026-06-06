@@ -128,8 +128,11 @@
                 @if($team)
                     <div class="flex items-center gap-4">
                         <div class="h-20 w-20 shrink-0 overflow-hidden rounded-3xl border border-[#C8E6C9] bg-[#E4F2DE]">
-                            @if($team->logo_url)
-                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-full w-full object-cover">
+                            @php
+                                $teamLogoExists = $team->logo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($team->logo_url);
+                            @endphp
+                            @if($teamLogoExists)
+                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-full w-full object-contain p-2">
                             @else
                                 <div class="flex h-full w-full items-center justify-center text-3xl font-black text-[#2E7D32]">
                                     {{ strtoupper(substr($team->name, 0, 1)) }}

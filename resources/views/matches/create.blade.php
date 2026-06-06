@@ -24,8 +24,11 @@
                     <div class="mb-8 rounded-2xl border border-[#C8E6C9] bg-[#F1F8E9] p-5">
                         <p class="text-sm text-[#4B8B43]">Tim Pembuat</p>
                         <div class="mt-3 flex items-center gap-4">
-                            @if($team->logo_url)
-                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-16 w-16 rounded-2xl border border-[#C8E6C9] object-cover">
+                            @php
+                                $teamLogoExists = $team->logo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($team->logo_url);
+                            @endphp
+                            @if($teamLogoExists)
+                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-16 w-16 rounded-2xl border border-[#C8E6C9] object-contain p-2">
                             @else
                                 <div class="grid h-16 w-16 place-items-center rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] text-xl font-black text-[#0B5D1E]">
                                     {{ strtoupper(substr($team->name, 0, 1)) }}

@@ -54,4 +54,20 @@ class NotificationController extends Controller
 
         return back();
     }
+
+    public function markAllAsRead(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->unreadNotifications->markAsRead();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Notifications marked as read',
+                'unread_count' => 0,
+            ]);
+        }
+
+        return back();
+    }
 }

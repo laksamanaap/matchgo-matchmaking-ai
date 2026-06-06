@@ -11,8 +11,11 @@
                 <div class="flex flex-col gap-5 mb-8 md:flex-row md:items-center md:justify-between">
                     <div class="flex items-center gap-5">
                         <div class="h-24 w-24 overflow-hidden rounded-2xl border border-[#81C784]/30 bg-[#F1F8E9]">
-                            @if($team->logo_url)
-                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-full w-full object-cover">
+                            @php
+                                $teamLogoExists = $team->logo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($team->logo_url);
+                            @endphp
+                            @if($teamLogoExists)
+                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-full w-full object-contain p-2">
                             @else
                                 <div class="flex h-full w-full items-center justify-center text-3xl font-bold text-[#2E7D32]">
                                     {{ strtoupper(substr($team->name, 0, 1)) }}
