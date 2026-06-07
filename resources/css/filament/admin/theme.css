@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap');
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+.fi-panel-admin {
+    --font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+    color: #12351f;
+}
+
+.fi-panel-admin .fi-simple-layout {
+    min-height: 100vh;
+    background: #f1f8e9;
+}
+
+.fi-panel-admin .fi-simple-main-ctn {
+    min-height: 100vh;
+    padding: 1.25rem;
+}
+
+.fi-panel-admin .fi-simple-main {
+    width: min(100%, 27rem);
+    margin-inline: auto;
+}
+
+.fi-panel-admin .fi-simple-page {
+    border: 1px solid #ddeed8;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 18px 44px rgba(27, 94, 32, 0.12);
+}
+
+.fi-panel-admin .fi-simple-page-content {
+    gap: 1.15rem;
+    padding: 1.5rem;
+}
+
+.fi-panel-admin .fi-sidebar-header .fi-logo,
+.fi-panel-admin .fi-topbar .fi-logo {
+    width: auto;
+    max-width: 4.5rem;
+    object-fit: contain;
+}
+
+.fi-panel-admin .fi-sidebar-header {
+    min-height: 4.25rem;
+}
+
+.fi-panel-admin .fi-simple-header-heading {
+    color: #0b5d1e;
+    font-size: 1.9rem;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.fi-panel-admin .fi-simple-header-subheading {
+    color: #4b7f45;
+    font-weight: 700;
+}
+
+.fi-panel-admin .fi-fo-field-label {
+    color: #1b5e20;
+    font-weight: 800;
+}
+
+.fi-panel-admin .fi-input-wrp {
+    border: 1px solid #c8e6c9;
+    border-radius: 12px;
+    background: #f8fcf4;
+    box-shadow: none;
+}
+
+.fi-panel-admin .fi-input {
+    min-height: 2.85rem;
+    color: #12351f;
+    font-weight: 700;
+}
+
+.fi-panel-admin .fi-input-wrp:focus-within {
+    border-color: #2e8b3c;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.16);
+}
+
+.fi-panel-admin .fi-checkbox-input {
+    border-color: #8bc58b;
+}
+
+.fi-panel-admin .fi-btn {
+    min-height: 2.95rem;
+    border-radius: 12px;
+    font-weight: 900;
+}
+
+.fi-panel-admin .fi-btn.fi-color-primary {
+    background: #2e8b3c;
+    box-shadow: 0 10px 22px rgba(27, 94, 32, 0.16);
+}
+
+.fi-panel-admin .fi-btn.fi-color-primary:hover {
+    background: #23742f;
+}
+
+@media (min-width: 640px) {
+    .fi-panel-admin .fi-simple-page-content {
+        padding: 2rem;
+    }
+}

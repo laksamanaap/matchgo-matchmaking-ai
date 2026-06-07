@@ -8,6 +8,7 @@ use App\Models\FutsalMatch;
 use App\Models\MatchRequest;
 use App\Models\Team;
 use App\Services\MatchCostService;
+use App\Services\MatchmakingService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -107,10 +108,12 @@ class MatchResource extends Resource
 
                 DatePicker::make('match_date')
                     ->label('Tanggal Pertandingan')
+                    ->default(fn (): string => app(MatchmakingService::class)->defaultMatchTime()->toDateString())
                     ->required(),
 
                 TimePicker::make('start_time')
                     ->label('Waktu Mulai')
+                    ->default(fn (): string => app(MatchmakingService::class)->defaultMatchTime()->format('H:i:s'))
                     ->required(),
 
                 Select::make('duration_minutes')

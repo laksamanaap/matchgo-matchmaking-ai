@@ -167,6 +167,7 @@ class MatchController extends Controller
         $autoParams = [
             'duration_minutes' => (int) $request->input('duration_minutes', 60),
             'radius_km' => (int) $request->input('radius_km', 10),
+            'match_time' => $service->defaultMatchTime(),
         ];
 
         $latestMatchedQueue = AutoMatchmakingQueue::query()
@@ -202,7 +203,7 @@ class MatchController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(MatchmakingService $service)
     {
         $team = Auth::user()->team;
 
@@ -225,6 +226,7 @@ class MatchController extends Controller
         }
 
         $fields = Field::where('is_available', true)->get();
+        $defaultMatchTime = $service->defaultMatchTime();
         $now = now();
         $upcomingOnly = function ($query) use ($now) {
             $query->where(function ($query) use ($now) {
@@ -249,6 +251,7 @@ class MatchController extends Controller
             'team' => $team,
             'fields' => $fields,
             'myChallenges' => $myChallenges,
+            'defaultMatchTime' => $defaultMatchTime,
         ]);
     }
 
@@ -262,6 +265,7 @@ class MatchController extends Controller
                 'teamB.players',
                 'field',
                 'booking.field',
+                'booking.payments',
                 'matchCost',
             ]),
         ]);

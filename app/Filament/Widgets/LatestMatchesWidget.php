@@ -28,11 +28,13 @@ class LatestMatchesWidget extends BaseWidget
                 TextColumn::make('teams')
                     ->label('Pertandingan')
                     ->getStateUsing(fn (FutsalMatch $record): string =>
-                        "{$record->teamA->name} vs {$record->teamB->name}"
+                        ($record->teamA?->name ?? 'Tim A tidak tersedia') . ' vs ' . ($record->teamB?->name ?? 'Menunggu Lawan')
                     ),
 
-                TextColumn::make('venue.name')
-                    ->label('Lapangan'),
+                TextColumn::make('lapangan')
+                    ->label('Lapangan')
+                    ->getStateUsing(fn (FutsalMatch $record): string => $record->field?->name ?? $record->venue?->name ?? '-')
+                    ->placeholder('-'),
 
                 TextColumn::make('match_date')
                     ->label('Tanggal')

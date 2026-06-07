@@ -58,13 +58,13 @@
                         <div class="grid gap-5 md:grid-cols-3">
                             <div>
                                 <label class="mb-2 block text-sm font-bold text-[#1B5E20]">Tanggal</label>
-                                <input type="date" name="match_date" value="{{ old('match_date', now()->addDays(1)->format('Y-m-d')) }}" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('match_date') border-red-500 @enderror" />
+                                <input type="date" name="match_date" value="{{ old('match_date', $defaultMatchTime->format('Y-m-d')) }}" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('match_date') border-red-500 @enderror" />
                                 @error('match_date') <span class="mt-1 block text-sm text-red-500">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
                                 <label class="mb-2 block text-sm font-bold text-[#1B5E20]">Jam Mulai</label>
-                                <input type="time" name="start_time" value="{{ old('start_time', '19:00') }}" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('start_time') border-red-500 @enderror" />
+                                <input type="time" name="start_time" value="{{ old('start_time', $defaultMatchTime->format('H:i')) }}" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('start_time') border-red-500 @enderror" />
                                 @error('start_time') <span class="mt-1 block text-sm text-red-500">{{ $message }}</span> @enderror
                             </div>
 

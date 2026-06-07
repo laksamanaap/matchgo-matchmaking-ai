@@ -57,6 +57,7 @@ class PaymentController extends Controller
         $data = $request->validate([
             'booking_id' => ['required', 'exists:bookings,id'],
             'payment_method' => ['required', 'in:bank_transfer,e-wallet,cash'],
+            'return_to_match' => ['nullable', 'boolean'],
         ]);
 
         $team = Auth::user()->team;
@@ -100,6 +101,10 @@ class PaymentController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json(['payment' => $payment], 201);
+        }
+
+        if ($request->boolean('return_to_match')) {
+            return redirect()->route('matches.show', $booking->match)->with('success', 'Pembayaran berhasil dicatat.');
         }
 
         return redirect()->route('payments.index')->with('success', 'Pembayaran berhasil dicatat.');
