@@ -186,8 +186,16 @@ class PaymentController extends Controller
             ->filter()
             ->values();
 
-        if ($requiredTeamIds->isNotEmpty() && $requiredTeamIds->diff($paidTeamIds)->isEmpty() && $booking->match->status === 'scheduled') {
+        if (
+            $requiredTeamIds->isNotEmpty()
+            && $requiredTeamIds->diff($paidTeamIds)->isEmpty()
+            && (
+                $booking->match->status === 'scheduled'
+                || ($booking->match->isAutoMatch() && $booking->match->status === 'pending')
+            )
+        ) {
             $booking->match->update(['status' => 'confirmed']);
+            $booking->update(['status' => 'confirmed']);
         }
 
         session()->forget($sessionKey);

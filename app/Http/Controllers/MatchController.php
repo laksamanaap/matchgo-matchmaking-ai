@@ -166,11 +166,12 @@ class MatchController extends Controller
 
         $canUseMatchFeatures = $team->hasMinimumPlayers();
         $service->expireStaleQueues();
+        $autoAvailability = $service->autoMatchAvailability();
 
         $autoParams = [
             'duration_minutes' => (int) $request->input('duration_minutes', 60),
             'radius_km' => (int) $request->input('radius_km', 10),
-            'match_time' => $service->defaultMatchTime(),
+            'match_time' => $autoAvailability['match_time'],
         ];
 
         $latestMatchedQueue = AutoMatchmakingQueue::query()
@@ -203,6 +204,7 @@ class MatchController extends Controller
             'waitingQueue' => $waitingQueue,
             'latestMatchedQueue' => $latestMatchedQueue,
             'canUseMatchFeatures' => $canUseMatchFeatures,
+            'autoAvailability' => $autoAvailability,
         ]);
     }
 
@@ -812,6 +814,14 @@ class MatchController extends Controller
                 ->withInput();
         }
 
+        $autoAvailability = $service->autoMatchAvailability();
+
+        if (! $autoAvailability['available']) {
+            return back()
+                ->withErrors(['message' => $autoAvailability['message']])
+                ->withInput();
+        }
+
         $existingPendingMatch = FutsalMatch::query()
             ->whereIn('status', ['pending'])
             ->where(fn ($query) => $query
@@ -833,7 +843,13 @@ class MatchController extends Controller
         $durationMinutes = (int) $request->duration_minutes;
         $radiusKm = (int) $request->radius_km;
 
-        $queue = $service->startAutoSearch($team, $durationMinutes, $radiusKm);
+        try {
+            $queue = $service->startAutoSearch($team, $durationMinutes, $radiusKm);
+        } catch (\RuntimeException $exception) {
+            return back()
+                ->withErrors(['message' => $exception->getMessage()])
+                ->withInput();
+        }
 
         return redirect()->route('matches.auto')
             ->with('success', 'Tim kamu masuk queue matchmaking. Sistem mencari lawan maksimal 5 menit.');
@@ -928,6 +944,23 @@ class MatchController extends Controller
 
         if ($match->status !== 'pending') {
             return redirect()->route('matches.show', $match)->with('success', 'Status pertandingan sudah diperbarui.');
+        }
+
+        if ($match->isAutoMatch()) {
+            $match->loadMissing(['booking.payments']);
+
+            $paidTeamIds = $match->booking?->payments
+                ?->where('payment_status', 'paid')
+                ->pluck('team_id')
+                ->all() ?? [];
+
+            if (
+                ! in_array($match->team_a_id, $paidTeamIds, true)
+                || ! in_array($match->team_b_id, $paidTeamIds, true)
+            ) {
+                return redirect()->route('matches.show', $match)
+                    ->withErrors(['message' => 'AutoMatching baru bisa dikonfirmasi setelah kedua tim melunasi pembayaran.']);
+            }
         }
 
         $match->update(['status' => 'confirmed']);

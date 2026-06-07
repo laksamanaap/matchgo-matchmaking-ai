@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\DB;
 
 class MatchmakingService
 {
+    private const AUTO_MATCH_START_HOUR = 7;
+    private const AUTO_MATCH_EARLIEST_MATCH_HOUR = 10;
+    private const AUTO_MATCH_LATEST_MATCH_HOUR = 22;
+
     public function defaultMatchTime(?Carbon $now = null): Carbon
     {
         $matchTime = ($now?->copy() ?? now())->addHours(3);
@@ -26,6 +30,53 @@ class MatchmakingService
         }
 
         return $matchTime->startOfHour();
+    }
+
+    public function autoMatchTime(?Carbon $now = null): Carbon
+    {
+        return $this->defaultMatchTime($now);
+    }
+
+    /**
+     * @return array{available: bool, message: string|null, match_time: Carbon}
+     */
+    public function autoMatchAvailability(?Carbon $now = null): array
+    {
+        $now = $now?->copy() ?? now();
+        $matchTime = $this->autoMatchTime($now);
+        $usageStart = $now->copy()->setTime(self::AUTO_MATCH_START_HOUR, 0, 0);
+        $earliestMatch = $matchTime->copy()->setTime(self::AUTO_MATCH_EARLIEST_MATCH_HOUR, 0, 0);
+        $latestMatch = $matchTime->copy()->setTime(self::AUTO_MATCH_LATEST_MATCH_HOUR, 0, 0);
+
+        if ($now->lt($usageStart)) {
+            return [
+                'available' => false,
+                'message' => 'AutoMatching baru bisa digunakan mulai pukul 07:00.',
+                'match_time' => $matchTime,
+            ];
+        }
+
+        if ($matchTime->lt($earliestMatch)) {
+            return [
+                'available' => false,
+                'message' => 'Pertandingan AutoMatching hanya tersedia mulai pukul 10:00.',
+                'match_time' => $matchTime,
+            ];
+        }
+
+        if ($matchTime->gt($latestMatch)) {
+            return [
+                'available' => false,
+                'message' => 'Pertandingan AutoMatching terakhir dijadwalkan mulai pukul 22:00. Silakan cari lagi besok mulai pukul 07:00.',
+                'match_time' => $matchTime,
+            ];
+        }
+
+        return [
+            'available' => true,
+            'message' => null,
+            'match_time' => $matchTime,
+        ];
     }
 
     /**
@@ -184,7 +235,13 @@ class MatchmakingService
                 ->whereIn('status', ['waiting', 'searching'])
                 ->update(['status' => 'cancelled']);
 
-            $matchTime = $this->defaultMatchTime();
+            $availability = $this->autoMatchAvailability();
+
+            if (! $availability['available']) {
+                throw new \RuntimeException($availability['message'] ?? 'AutoMatching belum tersedia saat ini.');
+            }
+
+            $matchTime = $availability['match_time'];
 
             $queue = AutoMatchmakingQueue::create([
                 'team_id' => $team->id,
@@ -227,10 +284,10 @@ class MatchmakingService
 
             $team = $queue->team;
             $durationHours = (int) ceil($queue->duration_minutes / 60);
-            $matchDate = $queue->match_date?->toDateString() ?? $this->defaultMatchTime()->toDateString();
+            $matchDate = $queue->match_date?->toDateString() ?? $this->autoMatchTime()->toDateString();
             $startTime = $queue->start_time
                 ? Carbon::parse($queue->start_time)->format('H:i:s')
-                : $this->defaultMatchTime()->format('H:i:s');
+                : $this->autoMatchTime()->format('H:i:s');
 
             $candidates = AutoMatchmakingQueue::query()
                 ->whereIn('status', ['waiting', 'searching'])
@@ -422,7 +479,7 @@ class MatchmakingService
             ], [
                 'amount' => $amount,
                 'payment_method' => 'bank_transfer',
-                'payment_status' => 'paid',
+                'payment_status' => 'pending',
             ]);
         }
 

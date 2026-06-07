@@ -28,6 +28,13 @@
         && ($match->created_at?->greaterThanOrEqualTo(now()->subHours(6)) ?? false);
     $creatorDpPaid = $creatorPayment?->payment_status === 'paid';
     $opponentDpPaid = ! $teamB || $opponentPayment?->payment_status === 'paid';
+    $bothTeamsPaid = $teamB && $creatorDpPaid && $opponentDpPaid;
+    $effectiveStatus = $match->isAutoMatch() && $match->status === 'pending' && $bothTeamsPaid
+        ? 'confirmed'
+        : $match->status;
+    $effectiveBookingStatus = $match->isAutoMatch() && $booking?->status === 'pending' && $bothTeamsPaid
+        ? 'confirmed'
+        : $booking?->status;
     $opponentNeedsPayment = $teamB && ! $opponentDpPaid;
     $opponentPaymentCaption = $isCurrentTeamB ? 'Lunasi Pembayaran' : 'Menunggu lawan melunasi pembayaran';
     $schedulePendingCaption = $isCurrentTeamB ? 'Belum aktif, lunasi dulu' : 'Menunggu lawan lunasi';
@@ -36,7 +43,8 @@
         : ($cost?->dp_per_team ?? ($cost?->cost_per_team ?? 0));
     $handlingFee = $cost?->handling_fee ?? (int) ceil($basePayment * 0.1);
     $payableAmount = $basePayment + $handlingFee;
-    $bookingStatusClass = match ($booking?->status) {
+    $matchTypeLabel = $match->isAutoMatch() ? 'Match AutoMatching' : 'Match Biasa';
+    $bookingStatusClass = match ($effectiveBookingStatus) {
         'confirmed' => 'bg-emerald-500 text-white',
         'pending' => 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200',
         'cancelled' => 'bg-red-100 text-red-700 ring-1 ring-red-200',
@@ -53,18 +61,24 @@
         'expired' => 'Kedaluwarsa',
     ];
 
-    $statusLabel = $statusLabels[$match->status] ?? ucfirst($match->status);
+    $statusLabel = $statusLabels[$effectiveStatus] ?? ucfirst($effectiveStatus);
     $paymentStepCaption = ! $creatorDpPaid
-        ? 'Menunggu DP'
-        : ($opponentNeedsPayment ? $opponentPaymentCaption : ($teamB ? 'DP kedua tim sudah dibayar' : 'DP sudah dibayar'));
+        ? ($match->isAutoMatch() ? 'Menunggu pelunasan' : 'Menunggu DP')
+        : (
+            $opponentNeedsPayment
+                ? $opponentPaymentCaption
+                : ($teamB
+                    ? ($match->isAutoMatch() ? 'Pembayaran kedua tim sudah lunas' : 'DP kedua tim sudah dibayar')
+                    : ($match->isAutoMatch() ? 'Pembayaran sudah lunas' : 'DP sudah dibayar'))
+        );
     $matchScheduleActive = $creatorDpPaid
         && (
             ! $teamB
-            || ($opponentDpPaid && in_array($match->status, ['scheduled', 'confirmed', 'ongoing', 'completed'], true))
+            || ($opponentDpPaid && in_array($effectiveStatus, ['scheduled', 'confirmed', 'ongoing', 'completed'], true))
         );
-    $statusClass = $match->status === 'scheduled' && $teamB && ! $opponentDpPaid
+    $statusClass = $effectiveStatus === 'scheduled' && $teamB && ! $opponentDpPaid
         ? 'bg-yellow-100 text-yellow-700 ring-yellow-200'
-        : match ($match->status) {
+        : match ($effectiveStatus) {
             'completed', 'confirmed' => 'bg-emerald-100 text-emerald-700 ring-emerald-200',
             'cancelled', 'expired' => 'bg-red-100 text-red-700 ring-red-200',
             'pending' => 'bg-yellow-100 text-yellow-700 ring-yellow-200',
@@ -87,14 +101,14 @@
         ],
         [
             'title' => 'Match Dijadwalkan',
-            'caption' => $creatorDpPaid ? ($opponentNeedsPayment ? $schedulePendingCaption : ($teamB ? 'Status: ' . $statusLabel : 'Menunggu lawan')) : 'Menunggu pembayaran DP',
+            'caption' => $creatorDpPaid ? ($opponentNeedsPayment ? $schedulePendingCaption : ($teamB ? 'Status: ' . $statusLabel : 'Menunggu lawan')) : ($match->isAutoMatch() ? 'Menunggu pelunasan' : 'Menunggu pembayaran DP'),
             'active' => $matchScheduleActive,
             'icon' => 'calendar',
         ],
         [
             'title' => 'Match Selesai',
-            'caption' => $match->status === 'completed' ? 'Selesai' : 'Menunggu',
-            'active' => $match->status === 'completed',
+            'caption' => $effectiveStatus === 'completed' ? 'Selesai' : 'Menunggu',
+            'active' => $effectiveStatus === 'completed',
             'icon' => 'trophy',
         ],
     ];
@@ -125,6 +139,17 @@
         <section class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1D7A36] via-[#2E8B3C] to-[#7DBB43] p-1 shadow-xl shadow-[#1B5E20]/12">
             <div class="relative overflow-hidden rounded-[1.75rem] bg-white/10 px-6 py-7 text-white sm:px-9">
                 <div class="absolute inset-0 field-pattern opacity-20"></div>
+                <div class="relative mb-5 flex justify-center">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-white/18 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white ring-1 ring-white/25">
+                        @if($match->isAutoMatch())
+                            <x-heroicon-o-bolt class="h-4 w-4" />
+                        @else
+                            <x-heroicon-o-trophy class="h-4 w-4" />
+                        @endif
+                        {{ $matchTypeLabel }}
+                    </span>
+                </div>
+
                 <div class="relative flex justify-center">
                     <div class="flex w-full max-w-xl items-center justify-center gap-3 text-[#14351d] sm:gap-5">
                         <div class="w-36 rounded-3xl bg-white p-4 text-center shadow-xl shadow-[#0B3D1F]/15 sm:w-44">
@@ -216,7 +241,7 @@
                             <div>
                                 <p class="text-sm font-semibold text-[#6F945D]">Status Booking</p>
                                 <span class="mt-2 inline-flex rounded-xl px-4 py-2 text-sm font-black {{ $bookingStatusClass }}">
-                                    {{ ucfirst($booking?->status ?? 'belum tersedia') }}
+                                    {{ ucfirst($effectiveBookingStatus ?? 'belum tersedia') }}
                                 </span>
                             </div>
                         </div>

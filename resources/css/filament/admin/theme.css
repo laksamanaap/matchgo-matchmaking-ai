@@ -11,29 +11,68 @@
 
 .fi-panel-admin .fi-simple-layout {
     min-height: 100vh;
-    background: #f1f8e9;
+    background:
+        radial-gradient(circle at 22% 18%, rgba(76, 175, 80, 0.16), transparent 26rem),
+        radial-gradient(circle at 82% 78%, rgba(111, 148, 93, 0.14), transparent 24rem),
+        #f1f8e9;
 }
 
 .fi-panel-admin .fi-simple-main-ctn {
     min-height: 100vh;
-    padding: 1.25rem;
+    padding: 1.5rem;
 }
 
 .fi-panel-admin .fi-simple-main {
-    width: min(100%, 27rem);
+    width: min(100%, 25.5rem);
     margin-inline: auto;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-ring-offset-shadow: 0 0 #0000;
 }
 
 .fi-panel-admin .fi-simple-page {
-    border: 1px solid #ddeed8;
-    border-radius: 18px;
-    background: #ffffff;
-    box-shadow: 0 18px 44px rgba(27, 94, 32, 0.12);
+    border: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .fi-panel-admin .fi-simple-page-content {
-    gap: 1.15rem;
-    padding: 1.5rem;
+    position: relative;
+    gap: 1.2rem;
+    overflow: hidden;
+    border: 1px solid rgba(200, 230, 201, 0.95);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.96);
+    padding: 1.65rem;
+    box-shadow: 0 22px 60px rgba(27, 94, 32, 0.16);
+}
+
+.fi-panel-admin .fi-simple-page-content::before {
+    display: block;
+    width: max-content;
+    margin: 0 auto -0.1rem;
+    border-radius: 999px;
+    background: #f1f8e9;
+    padding: 0.45rem 0.8rem;
+    color: #2e7d32;
+    content: "Panel Admin";
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.fi-panel-admin .fi-simple-page-content::after {
+    display: block;
+    margin-top: 0.15rem;
+    color: #4b7f45;
+    content: "Login khusus untuk mengakses panel admin MatchGo.";
+    font-size: 0.84rem;
+    font-weight: 800;
+    line-height: 1.45;
+    text-align: center;
 }
 
 .fi-panel-admin .fi-sidebar-header .fi-logo,
@@ -49,7 +88,7 @@
 
 .fi-panel-admin .fi-simple-header-heading {
     color: #0b5d1e;
-    font-size: 1.9rem;
+    font-size: 2rem;
     font-weight: 900;
     letter-spacing: 0;
 }
@@ -66,13 +105,13 @@
 
 .fi-panel-admin .fi-input-wrp {
     border: 1px solid #c8e6c9;
-    border-radius: 12px;
+    border-radius: 14px;
     background: #f8fcf4;
     box-shadow: none;
 }
 
 .fi-panel-admin .fi-input {
-    min-height: 2.85rem;
+    min-height: 3rem;
     color: #12351f;
     font-weight: 700;
 }
@@ -87,8 +126,8 @@
 }
 
 .fi-panel-admin .fi-btn {
-    min-height: 2.95rem;
-    border-radius: 12px;
+    min-height: 3.05rem;
+    border-radius: 14px;
     font-weight: 900;
 }
 

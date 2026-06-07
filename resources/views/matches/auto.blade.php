@@ -30,21 +30,17 @@
                     </div>
 
                     <h1 class="max-w-2xl text-4xl font-black leading-tight text-[#0B5D1E] sm:text-6xl">
-                        Cari lawan futsal setara. Kick-off otomatis {{ $autoParams['match_time']->format('H:i') }}.
+                        Cari lawan futsal setara.
                     </h1>
 
                     <p class="mt-4 max-w-xl text-sm leading-6 text-[#4B8B43] sm:text-base">
                         Sistem hanya mempertemukan level yang sama, menghitung radius dari basecamp tim, memilih lapangan terdekat dari midpoint, lalu reserve slot lapangan.
                     </p>
 
-                    <div class="mt-8 grid gap-3 sm:grid-cols-3">
+                    <div class="mt-8 grid gap-3 sm:grid-cols-2">
                         <div class="rounded-2xl bg-[#F1F8E9] p-4">
                             <p class="text-xs text-[#4B8B43]">Level tim</p>
                             <p class="mt-1 text-lg font-black capitalize">{{ str_replace('_', ' ', $team->skill_level) }}</p>
-                        </div>
-                        <div class="rounded-2xl bg-[#F1F8E9] p-4">
-                            <p class="text-xs text-[#4B8B43]">Jadwal</p>
-                            <p class="mt-1 text-lg font-black">{{ $autoParams['match_time']->format('d M H:i') }}</p>
                         </div>
                         <div class="rounded-2xl bg-[#F1F8E9] p-4">
                             <p class="text-xs text-[#4B8B43]">Durasi</p>
@@ -64,6 +60,12 @@
                 @if(! $canUseMatchFeatures)
                     <div class="mb-5 rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
                         Tim kamu baru memiliki {{ $team->activePlayerCount() }} pemain termasuk captain. Minimal 5 pemain diperlukan.
+                    </div>
+                @endif
+
+                @if(! $autoAvailability['available'])
+                    <div class="mb-5 rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-sm font-bold text-yellow-800">
+                        {{ $autoAvailability['message'] }}
                     </div>
                 @endif
 
@@ -90,7 +92,7 @@
                             {{ $activeOpponent?->name ?? 'Lawan ditemukan' }}
                         </div>
                         <p id="queue-caption" class="mt-2 text-sm text-[#4B8B43]">
-                            {{ $activeMatch->field?->name ?? 'Lapangan terpilih' }} - {{ \Carbon\Carbon::parse($activeMatch->match_date->toDateString().' '.$activeMatch->start_time)->format('H:i') }}
+                            {{ $activeMatch->field?->name ?? 'Lapangan terpilih' }}
                         </p>
                     @else
                         <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#4B8B43]">Countdown</p>
@@ -141,7 +143,7 @@
                             </select>
                         </div>
 
-                        <button type="button" data-open-start-modal @disabled(! $team->isVerified() || ! $canUseMatchFeatures) class="w-full rounded-2xl bg-[#2E8B3C] px-5 py-4 text-base font-black text-white transition hover:bg-[#23742F] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500">
+                        <button type="button" data-open-start-modal @disabled(! $team->isVerified() || ! $canUseMatchFeatures || ! $autoAvailability['available']) class="w-full rounded-2xl bg-[#2E8B3C] px-5 py-4 text-base font-black text-white transition hover:bg-[#23742F] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500">
                             {{ $waitingQueue ? 'Cari Ulang' : 'Cari Lawan' }}
                         </button>
                     </form>
@@ -161,7 +163,7 @@
             <p class="text-xs font-black uppercase tracking-[0.2em] text-[#2E7D32]">Mulai Matchmaking</p>
             <h2 class="mt-2 text-2xl font-black">Mulai cari lawan sekarang?</h2>
             <p class="mt-3 text-sm leading-6 text-[#4B8B43]">
-                Setelah dikonfirmasi, tim kamu masuk queue selama 5 menit. Kalau lawan cocok ditemukan, sistem otomatis membuat jadwal di {{ $autoParams['match_time']->format('d M Y H:i') }}, memilih lapangan netral, dan mencatat pelunasan 100% + biaya admin 10%.
+                Setelah dikonfirmasi, tim kamu masuk queue selama 5 menit. Kalau lawan cocok ditemukan, sistem otomatis memilih lapangan netral dan mencatat tagihan pelunasan 100% + biaya admin 10%.
             </p>
             <div class="mt-6 grid gap-3 sm:grid-cols-2">
                 <button type="button" data-close-start-modal class="rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-sm font-black text-[#1B5E20]">
@@ -206,12 +208,6 @@
                 <div class="flex justify-between gap-4 rounded-2xl bg-[#F1F8E9] p-3">
                     <span>Lapangan</span>
                     <strong class="text-right text-[#0B5D1E]">{{ $activeMatch?->field?->name ?? '-' }}</strong>
-                </div>
-                <div class="flex justify-between gap-4 rounded-2xl bg-[#F1F8E9] p-3">
-                    <span>Kick-off</span>
-                    <strong class="text-right text-[#0B5D1E]">
-                        {{ $activeMatch ? \Carbon\Carbon::parse($activeMatch->match_date->toDateString().' '.$activeMatch->start_time)->format('d M Y H:i') : '-' }}
-                    </strong>
                 </div>
                 <div class="flex justify-between gap-4 rounded-2xl bg-[#F1F8E9] p-3">
                     <span>Status</span>
