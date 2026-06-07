@@ -268,6 +268,8 @@ class MatchController extends Controller
             ->orderBy('start_time')
             ->get();
 
+        $defaultMatchTime = $service->defaultMatchTime();
+
         return view('matches.create', [
             'team' => $team,
             'fields' => $fields,
