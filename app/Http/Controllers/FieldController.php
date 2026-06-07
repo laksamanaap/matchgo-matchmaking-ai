@@ -40,6 +40,6 @@ class FieldController extends Controller
 
     public function show(Field $field)
     {
-        return response()->json($field);
+        return view('fields.show', ['field' => $field]);
     }
 }

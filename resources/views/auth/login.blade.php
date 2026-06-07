@@ -95,6 +95,11 @@
                     Belum punya akun?
                     <a href="{{ route('register.form') }}" class="text-[#0B5D1E] hover:text-[#43A047]">Daftar sekarang</a>
                 </div>
+
+                <a href="{{ url('/admin/login') }}" class="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-[#DDEED8] px-4 py-3 text-center text-sm font-bold text-[#2E7D32] transition hover:bg-[#F8FCF4]">
+                    <x-heroicon-o-shield-check class="h-5 w-5" />
+                    Login sebagai Admin
+                </a>
             </div>
         </section>
     </main>

@@ -96,7 +96,7 @@
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
                             <label class="block text-sm font-semibold text-[#2E7D32] mb-2">Domisili</label>
-                            <input type="text" name="domicile" value="{{ old('domicile') }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('domicile') border-red-500 @enderror" />
+                            <input id="create-domicile" type="text" name="domicile" value="{{ old('domicile') }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('domicile') border-red-500 @enderror" />
                             @error('domicile') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
@@ -107,16 +107,24 @@
                         </div>
                     </div>
 
+                    <x-location-map-picker
+                        map-id="create-team-map"
+                        lat-id="create-latitude"
+                        lng-id="create-longitude"
+                        domicile-id="create-domicile"
+                        :default-lat="old('latitude', -6.2)"
+                        :default-lng="old('longitude', 106.8)" />
+
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
                             <label class="block text-sm font-semibold text-[#2E7D32] mb-2">Latitude</label>
-                            <input type="number" step="0.000001" name="latitude" value="{{ old('latitude', '-6.2') }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('latitude') border-red-500 @enderror" />
+                            <input id="create-latitude" type="number" step="0.000001" name="latitude" value="{{ old('latitude', '-6.2') }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('latitude') border-red-500 @enderror" />
                             @error('latitude') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold text-[#2E7D32] mb-2">Longitude</label>
-                            <input type="number" step="0.000001" name="longitude" value="{{ old('longitude', '106.8') }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('longitude') border-red-500 @enderror" />
+                            <input id="create-longitude" type="number" step="0.000001" name="longitude" value="{{ old('longitude', '106.8') }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50 @error('longitude') border-red-500 @enderror" />
                             @error('longitude') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
                     </div>

@@ -33,6 +33,33 @@ class PlayerController extends Controller
         return back()->with('success', 'Pemain berhasil ditambahkan.');
     }
 
+    public function demoFill()
+    {
+        $team = Auth::user()->team;
+
+        if (! $team) {
+            return back()->withErrors(['message' => 'Buat tim terlebih dahulu.']);
+        }
+
+        if ($team->owner_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $samples = [
+            ['player_name' => 'Andi Pratama', 'position' => 'Kiper', 'age' => 24],
+            ['player_name' => 'Budi Santoso', 'position' => 'Anchor', 'age' => 26],
+            ['player_name' => 'Citra Nugraha', 'position' => 'Flank Kiri', 'age' => 22],
+            ['player_name' => 'Dedi Kurniawan', 'position' => 'Flank Kanan', 'age' => 25],
+            ['player_name' => 'Eka Saputra', 'position' => 'Pivot', 'age' => 23],
+        ];
+
+        foreach ($samples as $sample) {
+            $team->players()->create($sample);
+        }
+
+        return back()->with('success', '5 pemain demo berhasil ditambahkan.');
+    }
+
     public function show(Player $player)
     {
         $this->authorizePlayer($player);

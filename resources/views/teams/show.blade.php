@@ -144,20 +144,22 @@
 
                         <div class="grid gap-6 md:grid-cols-2">
                             <div>
-                                <div class="mb-2 flex items-center justify-between gap-3">
-                                    <label class="block text-sm font-semibold text-[#2E7D32]">Domisili</label>
-                                    <button type="button" id="use-current-location" class="rounded-xl bg-[#F1F8E9] px-3 py-1.5 text-xs font-bold text-[#2E7D32] ring-1 ring-[#81C784]/40 hover:bg-[#E4F2DE]">
-                                        Gunakan Lokasi Saat Ini
-                                    </button>
-                                </div>
+                                <label class="block text-sm font-semibold text-[#2E7D32] mb-2">Domisili</label>
                                 <input id="team-domicile" type="text" name="domicile" value="{{ old('domicile', $team->city) }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50" />
-                                <p id="location-status" class="mt-2 hidden text-xs text-[#2E7D32]/80"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-[#2E7D32] mb-2">Nomor Kontak</label>
                                 <input type="text" name="contact_number" value="{{ old('contact_number', $team->contact_number) }}" required class="w-full rounded-2xl border border-[#81C784]/40 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/50" />
                             </div>
                         </div>
+
+                        <x-location-map-picker
+                            map-id="edit-team-map"
+                            lat-id="team-latitude"
+                            lng-id="team-longitude"
+                            domicile-id="team-domicile"
+                            :default-lat="old('latitude', $team->latitude ?? -6.2)"
+                            :default-lng="old('longitude', $team->longitude ?? 106.8)" />
 
                         <div class="grid gap-6 md:grid-cols-2">
                             <div>
@@ -188,49 +190,84 @@
 
             {{-- Players Section --}}
             <div class="bg-white rounded-3xl shadow-lg p-8">
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="text-2xl font-bold text-[#1B5E20]">Daftar Pemain</h2>
                     @if($team->owner_id === Auth::id())
-                        <button type="button" onclick="document.getElementById('add-player-modal').classList.remove('hidden')" class="px-4 py-2 rounded-xl bg-[#4CAF50] text-white font-semibold hover:bg-[#45a049] transition">
-                            + Tambah Pemain
-                        </button>
+                        <div class="flex flex-wrap gap-2">
+                            <form method="POST" action="{{ route('players.demo_fill') }}" class="inline" onsubmit="return confirm('Tambahkan 5 pemain demo ke tim?')">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-[#F1F8E9] text-[#2E7D32] font-semibold ring-1 ring-[#81C784]/40 hover:bg-[#E4F2DE] transition">
+                                    Demo Auto Fill
+                                </button>
+                            </form>
+                            <button type="button" onclick="document.getElementById('add-player-modal').classList.remove('hidden')" class="px-4 py-2 rounded-xl bg-[#4CAF50] text-white font-semibold hover:bg-[#45a049] transition">
+                                + Tambah Pemain
+                            </button>
+                        </div>
                     @endif
                 </div>
 
-                @if($team->players->count() > 0)
-                    <div class="space-y-3">
-                        @foreach($team->players as $player)
-                            <div class="flex items-center justify-between p-4 rounded-2xl bg-[#F1F8E9] border border-[#81C784]/30">
+                <div class="space-y-3">
+                    {{-- Kapten (pemilik tim) selalu tampil pertama --}}
+                    <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[#E8F5E9] to-[#F1F8E9] border-2 border-[#4CAF50]/50 ring-1 ring-[#4CAF50]/20">
+                        <div class="flex items-center gap-4">
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#2E7D32] text-sm font-black text-white">1</span>
+                            <span class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#DDF1D8]">
+                                @if($team->owner->profile_photo)
+                                    <img src="{{ asset('storage/' . $team->owner->profile_photo) }}" alt="{{ $team->owner->name }}" class="h-full w-full object-cover">
+                                @else
+                                    <span class="flex h-full w-full items-center justify-center text-base font-black text-[#2E7D32]">{{ strtoupper(substr($team->owner->name, 0, 1)) }}</span>
+                                @endif
+                            </span>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="font-bold text-[#1B5E20]">{{ $team->owner->name }}</p>
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-[#2E7D32] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                                        ★ Kapten
+                                    </span>
+                                </div>
+                                <p class="text-sm text-[#2E7D32]/80">Kapten Tim</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Pemain lain, bernomor mulai dari 2 --}}
+                    @foreach($team->players as $index => $player)
+                        <div class="flex items-center justify-between p-4 rounded-2xl bg-[#F1F8E9] border border-[#81C784]/30">
+                            <div class="flex items-center gap-4">
+                                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-sm font-black text-[#2E7D32] ring-1 ring-[#81C784]/40">{{ $index + 2 }}</span>
                                 <div>
                                     <p class="font-semibold text-[#1B5E20]">{{ $player->player_name }}</p>
                                     <p class="text-sm text-[#2E7D32]/80">{{ $player->position }} • {{ $player->age }} tahun</p>
                                 </div>
-                                @if($team->owner_id === Auth::id())
-                                    <div class="flex gap-2">
-                                        <button
-                                            type="button"
-                                            data-open-player-edit
-                                            data-action="{{ route('players.update', $player) }}"
-                                            data-name="{{ $player->player_name }}"
-                                            data-position="{{ $player->position }}"
-                                            data-age="{{ $player->age }}"
-                                            class="px-3 py-1 rounded-lg text-sm text-[#2E7D32] hover:bg-[#81C784]/20 transition"
-                                        >
-                                            Edit
-                                        </button>
-                                        <form method="POST" action="/players/{{ $player->id }}" class="inline" onsubmit="return confirm('Hapus pemain?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="px-3 py-1 rounded-lg text-sm text-red-600 hover:bg-red-50 transition">Hapus</button>
-                                        </form>
-                                    </div>
-                                @endif
                             </div>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-center text-[#2E7D32]/80 py-8">Belum ada pemain. Tambahkan pemain pertama kamu!</p>
-                @endif
+                            @if($team->owner_id === Auth::id())
+                                <div class="flex gap-2">
+                                    <button
+                                        type="button"
+                                        data-open-player-edit
+                                        data-action="{{ route('players.update', $player) }}"
+                                        data-name="{{ $player->player_name }}"
+                                        data-position="{{ $player->position }}"
+                                        data-age="{{ $player->age }}"
+                                        class="px-3 py-1 rounded-lg text-sm text-[#2E7D32] hover:bg-[#81C784]/20 transition"
+                                    >
+                                        Edit
+                                    </button>
+                                    <form method="POST" action="/players/{{ $player->id }}" class="inline" onsubmit="return confirm('Hapus pemain?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-3 py-1 rounded-lg text-sm text-red-600 hover:bg-red-50 transition">Hapus</button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+
+                    @if($team->players->count() === 0)
+                        <p class="text-center text-[#2E7D32]/80 py-6">Belum ada pemain selain kapten. Tambahkan pemain atau pakai Demo Auto Fill!</p>
+                    @endif
+                </div>
             </div>
 
             <div id="add-player-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -396,80 +433,6 @@
                     @if(old('_form') === 'player_edit')
                         playerEditModal?.classList.remove('hidden');
                     @endif
-                });
-            </script>
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const button = document.getElementById('use-current-location');
-                    const domicile = document.getElementById('team-domicile');
-                    const latitude = document.getElementById('team-latitude');
-                    const longitude = document.getElementById('team-longitude');
-                    const status = document.getElementById('location-status');
-
-                    const showStatus = (message, isError = false) => {
-                        status.textContent = message;
-                        status.classList.remove('hidden');
-                        status.classList.toggle('text-red-600', isError);
-                        status.classList.toggle('text-[#2E7D32]/80', !isError);
-                    };
-
-                    const pickDomicile = (address) => {
-                        return address.city
-                            || address.town
-                            || address.village
-                            || address.suburb
-                            || address.county
-                            || address.state
-                            || '';
-                    };
-
-                    button?.addEventListener('click', function () {
-                        if (!navigator.geolocation) {
-                            showStatus('Browser kamu belum mendukung deteksi lokasi.', true);
-                            return;
-                        }
-
-                        button.disabled = true;
-                        button.textContent = 'Mengambil lokasi...';
-                        showStatus('Mohon izinkan akses lokasi di browser.');
-
-                        navigator.geolocation.getCurrentPosition(async (position) => {
-                            const lat = position.coords.latitude.toFixed(8);
-                            const lon = position.coords.longitude.toFixed(8);
-
-                            latitude.value = lat;
-                            longitude.value = lon;
-
-                            try {
-                                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`, {
-                                    headers: { 'Accept': 'application/json' },
-                                });
-                                const payload = await response.json();
-                                const city = pickDomicile(payload.address || {});
-
-                                if (city) {
-                                    domicile.value = city;
-                                    showStatus(`Lokasi berhasil diisi: ${city}.`);
-                                } else {
-                                    showStatus('Koordinat berhasil diisi. Domisili belum ditemukan, silakan isi manual.');
-                                }
-                            } catch (error) {
-                                showStatus('Koordinat berhasil diisi. Domisili gagal dibaca otomatis, silakan isi manual.');
-                            } finally {
-                                button.disabled = false;
-                                button.textContent = 'Gunakan Lokasi Saat Ini';
-                            }
-                        }, () => {
-                            showStatus('Akses lokasi ditolak atau lokasi tidak tersedia.', true);
-                            button.disabled = false;
-                            button.textContent = 'Gunakan Lokasi Saat Ini';
-                        }, {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 60000,
-                        });
-                    });
                 });
             </script>
 

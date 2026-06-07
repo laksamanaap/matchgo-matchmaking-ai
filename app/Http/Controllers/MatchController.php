@@ -224,7 +224,29 @@ class MatchController extends Controller
                 ->withErrors(['message' => 'Tim kamu belum diverifikasi admin, jadi belum bisa membuat tantangan.']);
         }
 
-        $fields = Field::where('is_available', true)->get();
+        $teamLat = $team->latitude;
+        $teamLng = $team->longitude;
+        $radiusKm = 50; // hanya tampilkan lapangan dalam radius ini dari lokasi tim
+        $fields = Field::where('is_available', true)->get()
+            ->map(function ($field) use ($teamLat, $teamLng) {
+                $field->distance_km = ($teamLat && $teamLng && $field->latitude && $field->longitude)
+                    ? $this->haversineKm((float) $teamLat, (float) $teamLng, (float) $field->latitude, (float) $field->longitude)
+                    : null;
+
+                return $field;
+            })
+            ->sortBy(fn ($field) => $field->distance_km ?? INF)
+            ->values();
+
+        // Saring ke lapangan terdekat saja kalau tim punya koordinat.
+        // Fallback ke semua lapangan kalau tidak ada yang masuk radius (biar picker tidak kosong).
+        if ($teamLat && $teamLng) {
+            $nearby = $fields
+                ->filter(fn ($field) => $field->distance_km !== null && $field->distance_km <= $radiusKm)
+                ->values();
+            $fields = $nearby->isNotEmpty() ? $nearby : $fields;
+        }
+
         $now = now();
         $upcomingOnly = function ($query) use ($now) {
             $query->where(function ($query) use ($now) {
@@ -250,6 +272,17 @@ class MatchController extends Controller
             'fields' => $fields,
             'myChallenges' => $myChallenges,
         ]);
+    }
+
+    protected function haversineKm(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        return $earthRadius * 2 * asin(min(1, sqrt($a)));
     }
 
     public function show(FutsalMatch $match)
@@ -494,8 +527,18 @@ class MatchController extends Controller
 
     public function autoCancel()
     {
-        return redirect()->route('matches.auto')
-            ->withErrors(['message' => 'AutoMatching tidak bisa dibatalkan setelah pencarian dimulai.']);
+        $team = Auth::user()->team;
+
+        if (! $team) {
+            return redirect()->route('teams.index')->withErrors(['message' => 'Buat tim terlebih dahulu.']);
+        }
+
+        AutoMatchmakingQueue::query()
+            ->where('team_id', $team->id)
+            ->whereIn('status', ['waiting', 'searching'])
+            ->update(['status' => 'cancelled']);
+
+        return redirect()->route('matches.auto')->with('success', 'Pencarian AutoMatching dibatalkan.');
     }
 
     public function autoStatus(MatchmakingService $service)

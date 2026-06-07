@@ -44,15 +44,71 @@
                     <div class="grid gap-5">
                         <div>
                             <label class="mb-2 block text-sm font-bold text-[#1B5E20]">Lapangan</label>
-                            <select id="field_id" name="field_id" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('field_id') border-red-500 @enderror">
-                                <option value="" data-price="0">Pilih lapangan tersedia...</option>
-                                @foreach($fields as $field)
-                                    <option value="{{ $field->id }}" data-price="{{ $field->price_per_hour }}" {{ old('field_id') == $field->id ? 'selected' : '' }}>
-                                        {{ $field->name }} - Rp {{ number_format($field->price_per_hour, 0, ',', '.') }}/jam
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div id="field-combobox" class="relative">
+                                <input type="hidden" name="field_id" id="field_id" value="{{ old('field_id') }}" data-price="0">
+
+                                <div class="flex gap-2">
+                                    <button type="button" id="field-trigger" aria-haspopup="listbox" aria-expanded="false"
+                                        class="flex flex-1 items-center justify-between gap-3 rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-left text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('field_id') border-red-500 @enderror">
+                                        <span id="field-trigger-label" class="truncate text-[#7BA877]">Pilih lapangan tersedia...</span>
+                                        <x-heroicon-o-chevron-up-down class="h-5 w-5 shrink-0 text-[#4B8B43]" />
+                                    </button>
+                                    <button type="button" id="field-map-open"
+                                        class="inline-flex shrink-0 items-center gap-2 rounded-2xl bg-[#2E8B3C] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#23742F]">
+                                        <x-heroicon-o-map class="h-5 w-5" />
+                                        <span class="hidden sm:inline">Pilih lewat Peta</span>
+                                    </button>
+                                </div>
+
+                                <div id="field-panel" class="absolute z-30 mt-2 hidden w-full overflow-hidden rounded-2xl border border-[#C8E6C9] bg-white shadow-xl shadow-[#1B5E20]/10">
+                                    <div class="flex items-center gap-2 border-b border-[#EAF4E6] px-3 py-2.5">
+                                        <x-heroicon-o-magnifying-glass class="h-4 w-4 shrink-0 text-[#4B8B43]" />
+                                        <input type="text" id="field-search" autocomplete="off" placeholder="Cari nama, kota, atau alamat lapangan..."
+                                            class="w-full bg-transparent text-sm text-[#0B5D1E] outline-none placeholder:text-[#9CC298]" />
+                                    </div>
+
+                                    <ul id="field-options" role="listbox" class="max-h-72 overflow-y-auto overflow-x-hidden p-1.5">
+                                        @foreach($fields as $field)
+                                            @include('matches.partials.field-option', ['field' => $field])
+                                        @endforeach
+                                    </ul>
+                                    <p id="field-empty" class="hidden px-4 py-6 text-center text-sm font-semibold text-[#4B8B43]">Lapangan tidak ditemukan.</p>
+                                </div>
+                            </div>
                             @error('field_id') <span class="mt-1 block text-sm text-red-500">{{ $message }}</span> @enderror
+                        </div>
+
+                        {{-- Modal peta untuk memilih lapangan --}}
+                        <div id="field-map-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 p-3 sm:p-6">
+                            <div class="flex h-[88vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+                                <div class="flex items-center justify-between gap-4 border-b border-[#EAF4E6] px-5 py-4">
+                                    <div>
+                                        <h3 class="text-lg font-black text-[#0B5D1E]">Pilih Lapangan di Peta</h3>
+                                        <p class="text-sm text-[#4B8B43]">Klik pin lalu "Pilih lapangan ini", atau pilih dari daftar.</p>
+                                    </div>
+                                    <button type="button" id="field-map-close" class="grid h-10 w-10 place-items-center rounded-xl text-[#2E7D32] transition hover:bg-[#F1F8E9]">
+                                        <x-heroicon-o-x-mark class="h-6 w-6" />
+                                    </button>
+                                </div>
+
+                                <div class="flex min-h-0 flex-1 flex-col md:flex-row">
+                                    <div id="field-modal-map" class="z-0 h-1/2 w-full md:h-full md:w-3/5"></div>
+
+                                    <div class="flex min-h-0 w-full flex-col border-t border-[#EAF4E6] md:w-2/5 md:border-l md:border-t-0">
+                                        <div class="flex items-center gap-2 border-b border-[#EAF4E6] px-3 py-2.5">
+                                            <x-heroicon-o-magnifying-glass class="h-4 w-4 shrink-0 text-[#4B8B43]" />
+                                            <input type="text" id="field-modal-search" autocomplete="off" placeholder="Cari nama, kota, atau alamat..."
+                                                class="w-full bg-transparent text-sm text-[#0B5D1E] outline-none placeholder:text-[#9CC298]" />
+                                        </div>
+                                        <ul id="field-modal-options" class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-1.5">
+                                            @foreach($fields as $field)
+                                                @include('matches.partials.field-option', ['field' => $field, 'itemClass' => 'field-modal-option'])
+                                            @endforeach
+                                        </ul>
+                                        <p id="field-modal-empty" class="hidden px-4 py-6 text-center text-sm font-semibold text-[#4B8B43]">Lapangan tidak ditemukan.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="grid gap-5 md:grid-cols-3">
@@ -161,6 +217,9 @@
     </main>
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
 <script>
     const rupiah = (value) => new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -168,12 +227,12 @@
         maximumFractionDigits: 0,
     }).format(value);
 
+    const fieldInput = document.getElementById('field_id');
+    const durationSelect = document.getElementById('duration_minutes');
+
     const updateCostPreview = () => {
-        const field = document.getElementById('field_id');
-        const duration = document.getElementById('duration_minutes');
-        const selected = field.options[field.selectedIndex];
-        const price = Number(selected?.dataset.price || 0);
-        const hours = Math.ceil(Number(duration.value || 0) / 60);
+        const price = Number(fieldInput.dataset.price || 0);
+        const hours = Math.ceil(Number(durationSelect.value || 0) / 60);
         const total = price * hours;
         const costPerTeam = Math.round(total / 2);
         const dp = Math.ceil(costPerTeam * 0.5);
@@ -184,8 +243,177 @@
         document.getElementById('pay_now').textContent = rupiah(dp + webFee);
     };
 
-    document.getElementById('field_id').addEventListener('change', updateCostPreview);
-    document.getElementById('duration_minutes').addEventListener('change', updateCostPreview);
+    // Field selection: combobox list + map modal
+    (function () {
+        const combo = document.getElementById('field-combobox');
+        const trigger = document.getElementById('field-trigger');
+        const label = document.getElementById('field-trigger-label');
+        const panel = document.getElementById('field-panel');
+        const search = document.getElementById('field-search');
+        const emptyState = document.getElementById('field-empty');
+        const comboOptions = Array.from(document.querySelectorAll('#field-options .field-option'));
+        const modalOptions = Array.from(document.querySelectorAll('#field-modal-options .field-modal-option'));
+        const allOptions = comboOptions.concat(modalOptions);
+        let activeIndex = -1;
+
+        const teamLat = {{ $team->latitude ?? 'null' }};
+        const teamLng = {{ $team->longitude ?? 'null' }};
+
+        // ── Selection (shared by both lists + map) ──
+        const selectByValue = (value) => {
+            const src = allOptions.find((o) => o.dataset.value === value);
+            if (!src) return;
+            allOptions.forEach((o) => o.setAttribute('aria-selected', o.dataset.value === value ? 'true' : 'false'));
+            fieldInput.value = value;
+            fieldInput.dataset.price = src.dataset.price;
+            label.textContent = src.dataset.label;
+            label.classList.remove('text-[#7BA877]');
+            label.classList.add('text-[#0B5D1E]', 'font-semibold');
+            updateCostPreview();
+        };
+
+        // ── Combobox dropdown (text search) ──
+        const visibleOptions = () => comboOptions.filter((o) => !o.parentElement.classList.contains('hidden'));
+        const setActive = (index) => {
+            const vis = visibleOptions();
+            comboOptions.forEach((o) => o.classList.remove('bg-[#F1F8E9]'));
+            activeIndex = index;
+            if (vis[index]) { vis[index].classList.add('bg-[#F1F8E9]'); vis[index].scrollIntoView({ block: 'nearest' }); }
+        };
+        const filterCombo = (term) => {
+            const q = term.trim().toLowerCase();
+            let shown = 0;
+            comboOptions.forEach((o) => {
+                const match = o.dataset.search.includes(q);
+                o.parentElement.classList.toggle('hidden', !match);
+                if (match) shown++;
+            });
+            emptyState.classList.toggle('hidden', shown > 0);
+            setActive(shown > 0 ? 0 : -1);
+        };
+        const openPanel = () => {
+            panel.classList.remove('hidden');
+            trigger.setAttribute('aria-expanded', 'true');
+            search.value = '';
+            filterCombo('');
+            setTimeout(() => search.focus(), 0);
+        };
+        const closePanel = () => {
+            panel.classList.add('hidden');
+            trigger.setAttribute('aria-expanded', 'false');
+            activeIndex = -1;
+        };
+
+        trigger.addEventListener('click', () => { panel.classList.contains('hidden') ? openPanel() : closePanel(); });
+        search.addEventListener('input', (e) => filterCombo(e.target.value));
+        search.addEventListener('keydown', (e) => {
+            const vis = visibleOptions();
+            if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(activeIndex + 1, vis.length - 1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(activeIndex - 1, 0)); }
+            else if (e.key === 'Enter') { e.preventDefault(); if (vis[activeIndex]) { selectByValue(vis[activeIndex].dataset.value); closePanel(); } }
+            else if (e.key === 'Escape') { closePanel(); trigger.focus(); }
+        });
+        comboOptions.forEach((o) => o.addEventListener('click', () => { selectByValue(o.dataset.value); closePanel(); }));
+        document.addEventListener('click', (e) => { if (!combo.contains(e.target)) closePanel(); });
+
+        // ── Map modal ──
+        const modal = document.getElementById('field-map-modal');
+        const openBtn = document.getElementById('field-map-open');
+        const closeBtn = document.getElementById('field-map-close');
+        const mapEl = document.getElementById('field-modal-map');
+        const mSearch = document.getElementById('field-modal-search');
+        const mEmpty = document.getElementById('field-modal-empty');
+        const markers = new Map();
+        let modalMap = null;
+
+        const buildModalMap = () => {
+            if (modalMap || typeof L === 'undefined' || !mapEl) return;
+
+            const center = (teamLat && teamLng) ? [teamLat, teamLng] : [-6.2, 106.8];
+            modalMap = L.map(mapEl).setView(center, 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors',
+            }).addTo(modalMap);
+
+            const icon = L.icon({
+                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
+            });
+
+            const bounds = [];
+            if (teamLat && teamLng) {
+                L.circleMarker([teamLat, teamLng], { radius: 8, color: '#1B5E20', weight: 2, fillColor: '#4CAF50', fillOpacity: 0.9 })
+                    .addTo(modalMap).bindPopup('<b>Lokasi Tim</b>');
+                bounds.push([teamLat, teamLng]);
+            }
+
+            modalOptions.forEach((o) => {
+                const lat = parseFloat(o.dataset.lat), lng = parseFloat(o.dataset.lng);
+                if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+                const price = o.dataset.label.split(' - ')[1] || '';
+                const m = L.marker([lat, lng], { icon }).addTo(modalMap);
+                m.bindPopup(`<b>${o.dataset.name}</b><br>${price}<br><a href="#" data-select="${o.dataset.value}" style="color:#2E7D32;font-weight:700;">Pilih lapangan ini</a> &nbsp;·&nbsp; <a href="${o.dataset.detail}" target="_blank" style="color:#2E7D32;font-weight:700;">Detail</a>`);
+                markers.set(o.dataset.value, m);
+                bounds.push([lat, lng]);
+            });
+
+            if (bounds.length) modalMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+
+            modalMap.on('popupopen', (e) => {
+                const link = e.popup.getElement()?.querySelector('[data-select]');
+                if (!link) return;
+                link.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    selectByValue(link.dataset.select);
+                    closeModal();
+                }, { once: true });
+            });
+        };
+
+        const filterModal = (term) => {
+            const q = term.trim().toLowerCase();
+            let shown = 0;
+            modalOptions.forEach((o) => {
+                const match = o.dataset.search.includes(q);
+                o.parentElement.classList.toggle('hidden', !match);
+                const marker = markers.get(o.dataset.value);
+                if (marker && modalMap) {
+                    if (match && !modalMap.hasLayer(marker)) marker.addTo(modalMap);
+                    if (!match && modalMap.hasLayer(marker)) modalMap.removeLayer(marker);
+                }
+                if (match) shown++;
+            });
+            mEmpty.classList.toggle('hidden', shown > 0);
+        };
+
+        const openModal = () => {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            buildModalMap();
+            mSearch.value = '';
+            filterModal('');
+            setTimeout(() => modalMap && modalMap.invalidateSize(), 150);
+        };
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        openBtn.addEventListener('click', () => { closePanel(); openModal(); });
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
+        mSearch.addEventListener('input', (e) => filterModal(e.target.value));
+        modalOptions.forEach((o) => o.addEventListener('click', () => { selectByValue(o.dataset.value); closeModal(); }));
+
+        // Preselect from old('field_id') after validation error
+        if (fieldInput.value) selectByValue(fieldInput.value);
+    })();
+
+    durationSelect.addEventListener('change', updateCostPreview);
     updateCostPreview();
 </script>
 @endsection

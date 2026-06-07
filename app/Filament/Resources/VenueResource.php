@@ -6,13 +6,19 @@ use App\Filament\Resources\VenueResource\Pages;
 use App\Models\Venue;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -44,6 +50,19 @@ class VenueResource extends Resource
                 ->required()
                 ->maxLength(255),
 
+            FileUpload::make('images')
+                ->label('Foto Lapangan')
+                ->image()
+                ->multiple()
+                ->reorderable()
+                ->appendFiles()
+                ->maxFiles(5)
+                ->disk('public')
+                ->directory('venue-images')
+                ->imageEditor()
+                ->panelLayout('grid')
+                ->columnSpanFull(),
+
             Textarea::make('address')
                 ->label('Alamat')
                 ->required()
@@ -66,6 +85,9 @@ class VenueResource extends Resource
                     ->required(),
             ]),
 
+            View::make('filament.forms.venue-map')
+                ->columnSpanFull(),
+
             TextInput::make('price_per_hour')
                 ->label('Harga per Jam')
                 ->numeric()
@@ -80,6 +102,28 @@ class VenueResource extends Resource
             Toggle::make('is_active')
                 ->label('Aktif')
                 ->default(true),
+        ]);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            ImageEntry::make('images')
+                ->label('Foto Lapangan')
+                ->disk('public')
+                ->height(180)
+                ->columnSpanFull(),
+
+            Grid::make(2)->schema([
+                TextEntry::make('name')->label('Nama Lapangan'),
+                TextEntry::make('city')->label('Kota'),
+                TextEntry::make('address')->label('Alamat')->columnSpanFull(),
+                TextEntry::make('price_per_hour')->label('Harga/Jam')->money('IDR'),
+                TextEntry::make('contact_phone')->label('Nomor Kontak')->placeholder('-'),
+                TextEntry::make('latitude')->label('Latitude'),
+                TextEntry::make('longitude')->label('Longitude'),
+                IconEntry::make('is_active')->label('Aktif')->boolean(),
+            ]),
         ]);
     }
 
@@ -119,6 +163,7 @@ class VenueResource extends Resource
                     ->label('Status Aktif'),
             ])
             ->actions([
+                ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])

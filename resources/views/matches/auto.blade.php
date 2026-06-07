@@ -73,7 +73,13 @@
                         <h2 id="queue-title" class="mt-1 text-2xl font-black">{{ $waitingQueue ? 'Searching...' : ($activeMatch ? 'Match Found' : 'Ready') }}</h2>
                     </div>
                     <div class="grid h-16 w-16 place-items-center rounded-2xl border border-[#C8E6C9] bg-[#F1F8E9]">
-                        <div class="h-8 w-8 rounded-full border-4 border-[#2E7D32] border-t-transparent {{ $waitingQueue ? 'animate-spin' : '' }}"></div>
+                        @if($waitingQueue)
+                            <div class="h-8 w-8 rounded-full border-4 border-[#2E7D32] border-t-transparent animate-spin"></div>
+                        @elseif($activeMatch)
+                            <x-heroicon-o-check-circle class="h-8 w-8 text-[#2E7D32]" />
+                        @else
+                            <x-heroicon-o-bolt class="h-7 w-7 text-[#2E7D32]" />
+                        @endif
                     </div>
                 </div>
 
@@ -142,9 +148,9 @@
                 @endif
 
                 @if($waitingQueue && ! $activeMatch)
-                    <div class="mt-3 rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-5 py-3 text-sm font-bold text-[#1B5E20]">
-                        Pencarian AutoMatching sedang berjalan dan tidak bisa dibatalkan.
-                    </div>
+                    <button type="button" data-open-cancel-modal class="mt-3 w-full rounded-2xl border border-red-200 bg-white px-5 py-3 text-sm font-black text-red-600 transition hover:bg-red-50">
+                        Batalkan Pencarian
+                    </button>
                 @endif
             </aside>
         </section>
@@ -164,6 +170,30 @@
                 <button type="submit" form="auto-match-form" class="rounded-2xl bg-[#2E8B3C] px-4 py-3 text-sm font-black text-white">
                     Ya, Cari Lawan
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cancel-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-[#143D1F]/45 p-4">
+        <div class="w-full max-w-md rounded-3xl border border-[#DDEED8] bg-white p-6 text-[#0B5D1E] shadow-2xl shadow-[#1B5E20]/20">
+            <div class="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-red-50 text-red-600">
+                <x-heroicon-o-exclamation-triangle class="h-6 w-6" />
+            </div>
+            <p class="text-xs font-black uppercase tracking-[0.2em] text-red-600">Batalkan Pencarian</p>
+            <h2 class="mt-2 text-2xl font-black">Batalkan cari lawan?</h2>
+            <p class="mt-3 text-sm leading-6 text-[#4B8B43]">
+                Tim kamu akan keluar dari queue matchmaking. Kamu bisa memulai pencarian lagi kapan saja.
+            </p>
+            <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                <button type="button" data-close-cancel-modal class="rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-sm font-black text-[#1B5E20] transition hover:bg-[#F1F8E9]">
+                    Tidak, Lanjutkan
+                </button>
+                <form method="POST" action="{{ route('matches.auto_cancel') }}">
+                    @csrf
+                    <button type="submit" class="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white transition hover:bg-red-700">
+                        Ya, Batalkan
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -214,6 +244,7 @@
     const queueTitle = document.getElementById('queue-title');
     const queueCaption = document.getElementById('queue-caption');
     const startModal = document.getElementById('start-modal');
+    const cancelModal = document.getElementById('cancel-modal');
     const modal = document.getElementById('match-modal');
     const hasActiveQueue = page?.dataset.hasActiveQueue === 'true';
     const hasActiveMatch = page?.dataset.hasActiveMatch === 'true';
@@ -314,6 +345,27 @@
             modal?.classList.add('hidden');
             modal?.classList.remove('flex');
         });
+    });
+
+    document.querySelectorAll('[data-open-cancel-modal]').forEach((button) => {
+        button.addEventListener('click', () => {
+            cancelModal?.classList.remove('hidden');
+            cancelModal?.classList.add('flex');
+        });
+    });
+
+    document.querySelectorAll('[data-close-cancel-modal]').forEach((button) => {
+        button.addEventListener('click', () => {
+            cancelModal?.classList.add('hidden');
+            cancelModal?.classList.remove('flex');
+        });
+    });
+
+    cancelModal?.addEventListener('click', (event) => {
+        if (event.target === cancelModal) {
+            cancelModal.classList.add('hidden');
+            cancelModal.classList.remove('flex');
+        }
     });
 </script>
 @endpush

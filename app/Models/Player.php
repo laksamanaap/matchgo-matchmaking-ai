@@ -17,7 +17,8 @@ class Player extends Model
     protected function casts(): array
     {
         return [
-            'age' => 'integer',
+            'team_id' => 'integer',
+            'age'     => 'integer',
         ];
     }
 

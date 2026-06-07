@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::apiResource('teams', TeamController::class)->except(['create', 'edit']);
+    Route::post('/players/demo-fill', [PlayerController::class, 'demoFill'])->name('players.demo_fill');
     Route::apiResource('players', PlayerController::class)->except(['create', 'edit']);
 
     Route::get('/match-requests', [MatchRequestController::class, 'index'])->name('match_requests.index');

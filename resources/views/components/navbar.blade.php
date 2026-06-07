@@ -1,9 +1,10 @@
 {{-- Navbar Component for Authenticated Users --}}
 @php
     $navItems = [
-        ['label' => 'Buat Pertandingan', 'href' => route('matches.create'), 'active' => request()->routeIs('matches.create')],
-        ['label' => 'Cari Pertandingan', 'href' => route('matches.take'), 'active' => request()->routeIs('matches.take')],
-        ['label' => 'AutoMatching', 'href' => route('matches.auto'), 'active' => request()->routeIs('matches.auto')],
+        ['label' => 'Dashboard', 'icon' => 'squares-2x2', 'href' => route('dashboard'), 'active' => request()->routeIs('dashboard')],
+        ['label' => 'Buat Pertandingan', 'icon' => 'plus-circle', 'href' => route('matches.create'), 'active' => request()->routeIs('matches.create')],
+        ['label' => 'Cari Pertandingan', 'icon' => 'magnifying-glass', 'href' => route('matches.take'), 'active' => request()->routeIs('matches.take')],
+        ['label' => 'AutoMatching', 'icon' => 'bolt', 'href' => route('matches.auto'), 'active' => request()->routeIs('matches.auto')],
     ];
 
     $accountItems = [
@@ -26,17 +27,18 @@
 
 <nav class="fixed left-0 right-0 top-0 z-50 border-b border-[#DDEED8] bg-white/90 shadow-sm backdrop-blur-xl">
     <div class="container mx-auto px-6 lg:px-10">
-        <div class="flex h-16 items-center justify-between gap-4 md:h-20">
+        <div class="relative flex h-16 items-center justify-between gap-4 md:h-20">
             <a href="{{ route('dashboard') }}" class="group inline-flex items-center">
                 <span class="text-xl font-black tracking-tight text-[#0B5D1E] font-heading">
                     MATCH<span class="text-[#43A047]">GO.</span>
                 </span>
             </a>
 
-            <div class="hidden items-center gap-1 rounded-2xl bg-[#F8FCF4] p-1 ring-1 ring-[#DDEED8] md:flex">
+            <div class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-2xl bg-[#F8FCF4] p-1.5 shadow-sm ring-1 ring-[#DDEED8] md:flex">
                 @foreach($navItems as $item)
-                    <a href="{{ $item['href'] }}" class="rounded-xl px-3 py-2 text-xs font-bold transition xl:px-4 xl:text-sm {{ $item['active'] ? 'bg-white text-[#0B5D1E] shadow-sm ring-1 ring-[#DDEED8]' : 'text-[#2E7D32] hover:bg-white/70 hover:text-[#0B5D1E]' }}">
-                        {{ $item['label'] }}
+                    <a href="{{ $item['href'] }}" class="group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-200 xl:px-4 xl:text-sm {{ $item['active'] ? 'bg-gradient-to-r from-[#2E7D32] to-[#43A047] text-white shadow-md' : 'text-[#2E7D32] hover:bg-white hover:text-[#0B5D1E] hover:shadow-sm' }}">
+                        <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="h-4 w-4 shrink-0 transition {{ $item['active'] ? 'text-white' : 'text-[#43A047] group-hover:text-[#2E7D32]' }}" />
+                        <span>{{ $item['label'] }}</span>
                     </a>
                 @endforeach
             </div>
@@ -140,8 +142,9 @@
         <div id="mobile-menu" class="hidden border-t border-[#DDEED8] pb-5 pt-4 md:hidden">
             <div class="grid gap-2">
                 @foreach($navItems as $item)
-                    <a href="{{ $item['href'] }}" class="rounded-2xl px-4 py-3 text-sm font-bold transition {{ $item['active'] ? 'bg-[#F1F8E9] text-[#0B5D1E]' : 'text-[#2E7D32] hover:bg-[#F1F8E9]' }}">
-                        {{ $item['label'] }}
+                    <a href="{{ $item['href'] }}" class="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition {{ $item['active'] ? 'bg-gradient-to-r from-[#2E7D32] to-[#43A047] text-white shadow-sm' : 'text-[#2E7D32] hover:bg-[#F1F8E9]' }}">
+                        <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="h-5 w-5 shrink-0 {{ $item['active'] ? 'text-white' : 'text-[#43A047]' }}" />
+                        <span>{{ $item['label'] }}</span>
                     </a>
                 @endforeach
                 <div class="rounded-2xl bg-[#F8FCF4] px-4 py-3 ring-1 ring-[#DDEED8]">
