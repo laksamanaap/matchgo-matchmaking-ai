@@ -17,6 +17,17 @@ use Illuminate\Support\Facades\DB;
 
 class MatchmakingService
 {
+    public function defaultMatchTime(?Carbon $now = null): Carbon
+    {
+        $matchTime = ($now?->copy() ?? now())->addHours(3);
+
+        if ($matchTime->minute !== 0 || $matchTime->second !== 0 || $matchTime->micro !== 0) {
+            $matchTime->addHour();
+        }
+
+        return $matchTime->startOfHour();
+    }
+
     /**
      * Cari lawan yang cocok berdasarkan:
      * - skill_level sama
@@ -173,7 +184,7 @@ class MatchmakingService
                 ->whereIn('status', ['waiting', 'searching'])
                 ->update(['status' => 'cancelled']);
 
-            $matchTime = now()->addHours(3)->startOfHour();
+            $matchTime = $this->defaultMatchTime();
 
             $queue = AutoMatchmakingQueue::create([
                 'team_id' => $team->id,
@@ -216,9 +227,10 @@ class MatchmakingService
 
             $team = $queue->team;
             $durationHours = (int) ceil($queue->duration_minutes / 60);
-            $matchTime = now()->addHours(3)->startOfHour();
-            $matchDate = $matchTime->toDateString();
-            $startTime = $matchTime->format('H:i:s');
+            $matchDate = $queue->match_date?->toDateString() ?? $this->defaultMatchTime()->toDateString();
+            $startTime = $queue->start_time
+                ? Carbon::parse($queue->start_time)->format('H:i:s')
+                : $this->defaultMatchTime()->format('H:i:s');
 
             $candidates = AutoMatchmakingQueue::query()
                 ->whereIn('status', ['waiting', 'searching'])
@@ -226,6 +238,8 @@ class MatchmakingService
                 ->where('team_id', '!=', $team->id)
                 ->where('skill_level', $queue->skill_level)
                 ->where('duration_minutes', $queue->duration_minutes)
+                ->whereDate('match_date', $matchDate)
+                ->whereTime('start_time', $startTime)
                 ->where(function ($query) {
                     $query->whereNull('expired_at')
                         ->orWhere('expired_at', '>', now());

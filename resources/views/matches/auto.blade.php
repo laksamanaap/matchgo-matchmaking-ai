@@ -26,11 +26,11 @@
                 <div class="relative">
                     <div class="mb-5 flex flex-wrap items-center gap-3 text-xs font-black uppercase tracking-[0.18em] text-[#2E7D32]">
                         <span class="rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-3 py-1">Auto Matchmaking</span>
-                        <span class="text-[#4B8B43]">Main hari ini</span>
+                        <span class="text-[#4B8B43]">{{ $autoParams['match_time']->isToday() ? 'Main hari ini' : 'Main besok' }}</span>
                     </div>
 
                     <h1 class="max-w-2xl text-4xl font-black leading-tight text-[#0B5D1E] sm:text-6xl">
-                        Cari lawan futsal setara. Kick-off otomatis +3 jam.
+                        Cari lawan futsal setara. Kick-off otomatis {{ $autoParams['match_time']->format('H:i') }}.
                     </h1>
 
                     <p class="mt-4 max-w-xl text-sm leading-6 text-[#4B8B43] sm:text-base">
@@ -44,7 +44,7 @@
                         </div>
                         <div class="rounded-2xl bg-[#F1F8E9] p-4">
                             <p class="text-xs text-[#4B8B43]">Jadwal</p>
-                            <p class="mt-1 text-lg font-black">+3 jam</p>
+                            <p class="mt-1 text-lg font-black">{{ $autoParams['match_time']->format('d M H:i') }}</p>
                         </div>
                         <div class="rounded-2xl bg-[#F1F8E9] p-4">
                             <p class="text-xs text-[#4B8B43]">Durasi</p>
@@ -161,7 +161,7 @@
             <p class="text-xs font-black uppercase tracking-[0.2em] text-[#2E7D32]">Mulai Matchmaking</p>
             <h2 class="mt-2 text-2xl font-black">Mulai cari lawan sekarang?</h2>
             <p class="mt-3 text-sm leading-6 text-[#4B8B43]">
-                Setelah dikonfirmasi, tim kamu masuk queue selama 5 menit. Kalau lawan cocok ditemukan, sistem otomatis membuat jadwal di jam penuh +3 jam, memilih lapangan netral, dan mencatat pelunasan 100% + biaya admin 10%.
+                Setelah dikonfirmasi, tim kamu masuk queue selama 5 menit. Kalau lawan cocok ditemukan, sistem otomatis membuat jadwal di {{ $autoParams['match_time']->format('d M Y H:i') }}, memilih lapangan netral, dan mencatat pelunasan 100% + biaya admin 10%.
             </p>
             <div class="mt-6 grid gap-3 sm:grid-cols-2">
                 <button type="button" data-close-start-modal class="rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-sm font-black text-[#1B5E20]">

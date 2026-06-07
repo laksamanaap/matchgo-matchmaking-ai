@@ -9,7 +9,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-    use Filament\Pages\Dashboard;
+use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -30,6 +30,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('MatchGo')
+            ->brandLogo(asset('matchgo-logo.svg'))
+            ->brandLogoHeight('2.25rem')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->darkMode(true)
             ->colors([
                 'primary' => Color::Green,
