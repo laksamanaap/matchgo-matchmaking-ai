@@ -274,7 +274,7 @@ class MatchController extends Controller
             'team' => $team,
             'fields' => $fields,
             'myChallenges' => $myChallenges,
-            'defaultMatchTime' => $defaultMatchTime,
+            'defaultMatchTime' => $service->defaultMatchTime(),
         ]);
     }
 
