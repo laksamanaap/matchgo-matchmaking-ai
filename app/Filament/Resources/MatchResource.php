@@ -158,7 +158,7 @@ class MatchResource extends Resource
             Section::make('Rincian Biaya')
                 ->description('Biaya dihitung otomatis dari lapangan dan durasi pertandingan.')
                 ->schema([
-                    Grid::make(4)->schema([
+                    Grid::make(5)->schema([
                         Placeholder::make('total_cost')
                             ->label('Total Biaya')
                             ->content(fn ($record) => $record?->matchCost
@@ -174,16 +174,23 @@ class MatchResource extends Resource
                             ),
 
                         Placeholder::make('dp_per_team')
-                            ->label('DP Minimal')
+                            ->label('DP / Per Tim')
                             ->content(fn ($record) => $record?->matchCost
                                 ? 'Rp ' . number_format($record->matchCost->dp_per_team, 0, ',', '.')
                                 : '-'
                             ),
 
                         Placeholder::make('handling_fee')
-                            ->label('Biaya Penanganan')
+                            ->label('Biaya Web 10%')
                             ->content(fn ($record) => $record?->matchCost
                                 ? 'Rp ' . number_format($record->matchCost->handling_fee, 0, ',', '.')
+                                : '-'
+                            ),
+
+                        Placeholder::make('pay_now')
+                            ->label('Wajib Dibayar')
+                            ->content(fn ($record) => $record?->matchCost
+                                ? 'Rp ' . number_format(($record->matchCost->dp_per_team ?? 0) + ($record->matchCost->handling_fee ?? 0), 0, ',', '.')
                                 : '-'
                             ),
                     ]),
@@ -245,6 +252,16 @@ class MatchResource extends Resource
 
                 TextColumn::make('matchCost.total_cost')
                     ->label('Total Biaya')
+                    ->money('IDR')
+                    ->default('-'),
+
+                TextColumn::make('matchCost.dp_per_team')
+                    ->label('DP / Per Tim')
+                    ->money('IDR')
+                    ->default('-'),
+
+                TextColumn::make('matchCost.handling_fee')
+                    ->label('Biaya Web 10%')
                     ->money('IDR')
                     ->default('-'),
             ])

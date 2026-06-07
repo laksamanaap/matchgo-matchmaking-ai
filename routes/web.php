@@ -63,6 +63,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/matches/auto', [MatchController::class, 'autoStore'])->name('matches.auto_store');
     Route::post('/matches/auto/cancel', [MatchController::class, 'autoCancel'])->name('matches.auto_cancel');
     Route::post('/matches', [MatchController::class, 'store'])->name('matches.store');
+    Route::post('/matches/midtrans-token', [MatchController::class, 'midtransToken'])->name('matches.midtrans_token');
+    Route::post('/matches/pay-and-create', [MatchController::class, 'payAndCreate'])->name('matches.pay_and_create');
     Route::get('/matches/{match}', [MatchController::class, 'show'])->name('matches.show');
     Route::post('/matches/{match}/auto-confirm', [MatchController::class, 'autoConfirm'])->name('matches.auto_confirm');
     Route::post('/matches/{match}/auto-reject', [MatchController::class, 'autoReject'])->name('matches.auto_reject');
@@ -75,6 +77,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/payments/midtrans-token', [PaymentController::class, 'midtransToken'])->name('payments.midtrans_token');
+    Route::post('/payments/midtrans-finish', [PaymentController::class, 'midtransFinish'])->name('payments.midtrans_finish');
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
     Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
 

@@ -13,6 +13,15 @@ class Payment extends Model
         'amount',
         'payment_method',
         'payment_status',
+        'midtrans_order_id',
+        'midtrans_transaction_id',
+        'refund_reference',
+        'refund_note',
+        'refunded_at',
+    ];
+
+    protected $casts = [
+        'refunded_at' => 'datetime',
     ];
 
     public function booking(): BelongsTo

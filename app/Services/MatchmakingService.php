@@ -408,7 +408,7 @@ class MatchmakingService
             'total_cost' => $totalCost,
             'cost_per_team' => $costPerTeam,
             'dp_per_team' => $costPerTeam,
-            'handling_fee' => (int) ceil($totalCost * 0.1),
+            'handling_fee' => (int) ceil($costPerTeam * 0.1),
             'cost_per_player' => (int) round($totalCost / max(1, $team->player_count ?: 1)),
             'payment_notes' => "AutoMatching: level {$queue->skill_level}, midpoint {$midpoint['latitude']}, {$midpoint['longitude']}, radius {$queue->radius_km} km, lapangan {$field->name}. Pembayaran wajib lunas 100% dari biaya per tim ditambah biaya admin 10%.",
         ]);

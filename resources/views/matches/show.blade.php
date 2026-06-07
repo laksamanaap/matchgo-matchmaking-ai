@@ -10,16 +10,41 @@
     $cost = $match->matchCost;
     $startAt = \Carbon\Carbon::parse($match->match_date->toDateString() . ' ' . $match->start_time);
     $currentTeamId = auth()->user()?->team?->id;
+    $isCurrentTeamA = $currentTeamId && $currentTeamId === $match->team_a_id;
+    $isCurrentTeamB = $currentTeamId && $currentTeamId === $match->team_b_id;
+    $isMatchParticipant = $isCurrentTeamA || $isCurrentTeamB;
+    $heroMyTeam = $isCurrentTeamB ? $teamB : $teamA;
+    $heroOpponentTeam = $isCurrentTeamB ? $teamA : $teamB;
+    $heroMyTeamLabel = $isMatchParticipant ? 'Tim Saya' : 'Tim Pembuat';
+    $heroOpponentLabel = 'Lawan';
     $canManageMatch = $teamA && (auth()->id() === $teamA->owner_id || auth()->id() === $teamB?->owner_id);
     $currentPayment = $booking?->payments?->firstWhere('team_id', $currentTeamId);
+    $creatorPayment = $booking?->payments?->firstWhere('team_id', $match->team_a_id);
+    $opponentPayment = $booking?->payments?->firstWhere('team_id', $match->team_b_id);
+    $paidPaymentsCount = $booking?->payments?->where('payment_status', 'paid')->count() ?? 0;
+    $refundEligible = ! $match->isAutoMatch()
+        && in_array($match->status, ['scheduled', 'confirmed'], true)
+        && $paidPaymentsCount > 0
+        && ($match->created_at?->greaterThanOrEqualTo(now()->subHours(6)) ?? false);
+    $creatorDpPaid = $creatorPayment?->payment_status === 'paid';
+    $opponentDpPaid = ! $teamB || $opponentPayment?->payment_status === 'paid';
+    $opponentNeedsPayment = $teamB && ! $opponentDpPaid;
+    $opponentPaymentCaption = $isCurrentTeamB ? 'Lunasi Pembayaran' : 'Menunggu lawan melunasi pembayaran';
+    $schedulePendingCaption = $isCurrentTeamB ? 'Belum aktif, lunasi dulu' : 'Menunggu lawan lunasi';
     $basePayment = $match->isAutoMatch()
         ? ($cost?->cost_per_team ?? 0)
-        : ($cost?->dp_per_team ?? (int) ceil(($cost?->cost_per_team ?? 0) * 0.5));
-    $handlingFee = $cost?->handling_fee ?? (int) ceil(($cost?->total_cost ?? 0) * 0.1);
+        : ($cost?->dp_per_team ?? ($cost?->cost_per_team ?? 0));
+    $handlingFee = $cost?->handling_fee ?? (int) ceil($basePayment * 0.1);
     $payableAmount = $basePayment + $handlingFee;
+    $bookingStatusClass = match ($booking?->status) {
+        'confirmed' => 'bg-emerald-500 text-white',
+        'pending' => 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200',
+        'cancelled' => 'bg-red-100 text-red-700 ring-1 ring-red-200',
+        default => 'bg-[#EEF2E8] text-[#777f70] ring-1 ring-[#DFE8D8]',
+    };
 
     $statusLabels = [
-        'scheduled' => $teamB ? 'Dijadwalkan' : 'Menunggu Lawan',
+        'scheduled' => ! $teamB ? 'Menunggu Lawan' : ($opponentDpPaid ? 'Dijadwalkan' : ($isCurrentTeamB ? 'Lunasi Pembayaran' : 'Menunggu Pembayaran Lawan')),
         'pending' => 'Menunggu Pembayaran',
         'confirmed' => 'Terkonfirmasi',
         'ongoing' => 'Berlangsung',
@@ -29,13 +54,23 @@
     ];
 
     $statusLabel = $statusLabels[$match->status] ?? ucfirst($match->status);
-    $statusClass = match ($match->status) {
-        'completed', 'confirmed' => 'bg-emerald-100 text-emerald-700 ring-emerald-200',
-        'cancelled', 'expired' => 'bg-red-100 text-red-700 ring-red-200',
-        'pending' => 'bg-yellow-100 text-yellow-700 ring-yellow-200',
-        'ongoing' => 'bg-blue-100 text-blue-700 ring-blue-200',
-        default => 'bg-lime-100 text-[#2E7D32] ring-lime-200',
-    };
+    $paymentStepCaption = ! $creatorDpPaid
+        ? 'Menunggu DP'
+        : ($opponentNeedsPayment ? $opponentPaymentCaption : ($teamB ? 'DP kedua tim sudah dibayar' : 'DP sudah dibayar'));
+    $matchScheduleActive = $creatorDpPaid
+        && (
+            ! $teamB
+            || ($opponentDpPaid && in_array($match->status, ['scheduled', 'confirmed', 'ongoing', 'completed'], true))
+        );
+    $statusClass = $match->status === 'scheduled' && $teamB && ! $opponentDpPaid
+        ? 'bg-yellow-100 text-yellow-700 ring-yellow-200'
+        : match ($match->status) {
+            'completed', 'confirmed' => 'bg-emerald-100 text-emerald-700 ring-emerald-200',
+            'cancelled', 'expired' => 'bg-red-100 text-red-700 ring-red-200',
+            'pending' => 'bg-yellow-100 text-yellow-700 ring-yellow-200',
+            'ongoing' => 'bg-blue-100 text-blue-700 ring-blue-200',
+            default => 'bg-lime-100 text-[#2E7D32] ring-lime-200',
+        };
 
     $steps = [
         [
@@ -45,28 +80,22 @@
             'icon' => 'paper-airplane',
         ],
         [
-            'title' => 'Match Dijadwalkan',
-            'caption' => $match->status === 'scheduled' && ! $teamB ? 'Menunggu lawan' : 'Status: ' . $statusLabel,
-            'active' => in_array($match->status, ['scheduled', 'pending', 'confirmed', 'ongoing', 'completed'], true),
-            'icon' => 'calendar',
+            'title' => 'Pembayaran',
+            'caption' => $paymentStepCaption,
+            'active' => $creatorDpPaid,
+            'icon' => 'banknotes',
         ],
         [
-            'title' => 'Pembayaran',
-            'caption' => $match->status === 'pending' ? 'Menunggu pembayaran kedua tim' : ($cost ? 'Biaya tercatat' : 'Belum tersedia'),
-            'active' => in_array($match->status, ['pending', 'confirmed', 'ongoing', 'completed'], true),
-            'icon' => 'banknotes',
+            'title' => 'Match Dijadwalkan',
+            'caption' => $creatorDpPaid ? ($opponentNeedsPayment ? $schedulePendingCaption : ($teamB ? 'Status: ' . $statusLabel : 'Menunggu lawan')) : 'Menunggu pembayaran DP',
+            'active' => $matchScheduleActive,
+            'icon' => 'calendar',
         ],
         [
             'title' => 'Match Selesai',
             'caption' => $match->status === 'completed' ? 'Selesai' : 'Menunggu',
             'active' => $match->status === 'completed',
             'icon' => 'trophy',
-        ],
-        [
-            'title' => 'Terverifikasi',
-            'caption' => $match->status === 'completed' ? 'Menunggu admin' : 'Menunggu',
-            'active' => false,
-            'icon' => 'shield-check',
         ],
     ];
 
@@ -99,29 +128,29 @@
                 <div class="relative flex justify-center">
                     <div class="flex w-full max-w-xl items-center justify-center gap-3 text-[#14351d] sm:gap-5">
                         <div class="w-36 rounded-3xl bg-white p-4 text-center shadow-xl shadow-[#0B3D1F]/15 sm:w-44">
-                        @if($teamLogo($teamA))
-                            <img src="{{ $teamLogo($teamA) }}" alt="{{ $teamA->name }}" class="mx-auto h-16 w-16 rounded-2xl border border-[#DDEED8] bg-white object-cover p-1 shadow-sm">
+                        @if($teamLogo($heroMyTeam))
+                            <img src="{{ $teamLogo($heroMyTeam) }}" alt="{{ $heroMyTeam->name }}" class="mx-auto h-16 w-16 rounded-2xl border border-[#DDEED8] bg-white object-cover p-1 shadow-sm">
                         @else
                             <div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl border border-[#DDEED8] bg-[#E9F5E2] text-2xl font-black text-[#2E7D32] shadow-sm">
-                                {{ strtoupper(substr($teamA?->name ?? 'T', 0, 1)) }}
+                                {{ strtoupper(substr($heroMyTeam?->name ?? 'T', 0, 1)) }}
                             </div>
                         @endif
-                        <p class="mt-3 truncate text-sm font-black leading-tight">{{ $teamA?->name ?? 'Tim A' }}</p>
-                        <p class="mt-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#7A8474]">Tim Saya</p>
+                        <p class="mt-3 truncate text-sm font-black leading-tight">{{ $heroMyTeam?->name ?? 'Tim A' }}</p>
+                        <p class="mt-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#7A8474]">{{ $heroMyTeamLabel }}</p>
                     </div>
 
                         <div class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#F1F8E9] text-sm font-black uppercase text-[#2E7D32] shadow-md shadow-[#0B3D1F]/10 ring-4 ring-white/35">vs</div>
 
                         <div class="w-36 rounded-3xl bg-white p-4 text-center shadow-xl shadow-[#0B3D1F]/15 sm:w-44">
-                        @if($teamLogo($teamB))
-                            <img src="{{ $teamLogo($teamB) }}" alt="{{ $teamB->name }}" class="mx-auto h-16 w-16 rounded-2xl border border-[#DDEED8] bg-white object-cover p-1 shadow-sm">
+                        @if($teamLogo($heroOpponentTeam))
+                            <img src="{{ $teamLogo($heroOpponentTeam) }}" alt="{{ $heroOpponentTeam->name }}" class="mx-auto h-16 w-16 rounded-2xl border border-[#DDEED8] bg-white object-cover p-1 shadow-sm">
                         @else
                             <div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl border border-[#DDEED8] bg-white text-2xl font-black text-[#9aa093] shadow-sm">
                                 ?
                             </div>
                         @endif
-                        <p class="mt-3 truncate text-sm font-black leading-tight">{{ $teamB?->name ?? 'Menunggu Lawan' }}</p>
-                        <p class="mt-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#7A8474]">Lawan</p>
+                        <p class="mt-3 truncate text-sm font-black leading-tight">{{ $heroOpponentTeam?->name ?? 'Menunggu Lawan' }}</p>
+                        <p class="mt-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#7A8474]">{{ $heroOpponentLabel }}</p>
                         </div>
                     </div>
                 </div>
@@ -186,7 +215,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-[#6F945D]">Status Booking</p>
-                                <span class="mt-2 inline-flex rounded-xl bg-emerald-500 px-4 py-2 text-sm font-black text-white">
+                                <span class="mt-2 inline-flex rounded-xl px-4 py-2 text-sm font-black {{ $bookingStatusClass }}">
                                     {{ ucfirst($booking?->status ?? 'belum tersedia') }}
                                 </span>
                             </div>
@@ -245,12 +274,17 @@
                             </form>
                         </div>
                     @elseif(in_array($match->status, ['scheduled', 'confirmed'], true) && ! $match->isAutoMatch() && $canManageMatch)
-                        <form method="POST" action="{{ route('matches.cancel', $match) }}" onsubmit="return confirm('Batalkan pertandingan?')">
+                        <form method="POST" action="{{ route('matches.cancel', $match) }}" onsubmit="return confirm('{{ $refundEligible ? 'Batalkan pertandingan dan buat refund demo Midtrans?' : 'Batalkan pertandingan?' }}')">
                             @csrf
                             <button type="submit" class="w-full rounded-2xl bg-red-500 px-5 py-3 text-sm font-black text-white transition hover:bg-red-600">
-                                Batalkan
+                                {{ $refundEligible ? 'Batalkan & Refund Demo' : 'Batalkan' }}
                             </button>
                         </form>
+                        @if($refundEligible)
+                            <p class="text-center text-xs font-semibold leading-5 text-[#6F945D]">
+                                Refund demo tersedia untuk pembayaran yang dibatalkan maksimal 6 jam setelah dibuat.
+                            </p>
+                        @endif
                     @endif
 
                     @if(! $teamB && $currentTeamId !== $match->team_a_id)
@@ -288,14 +322,14 @@
                             <span class="text-right text-lg font-black text-[#0B5D1E]">Rp {{ number_format($cost->cost_per_team, 0, ',', '.') }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-5 py-4">
-                            <span class="font-semibold text-[#6F945D]">{{ $match->isAutoMatch() ? 'Pelunasan Tiap Tim' : 'DP 50% Tiap Tim' }}</span>
+                            <span class="font-semibold text-[#6F945D]">{{ $match->isAutoMatch() ? 'Pelunasan Tiap Tim' : 'DP 50% Harga Lapangan' }}</span>
                             <span class="text-right text-lg font-black text-[#0B5D1E]">
-                                Rp {{ number_format($match->isAutoMatch() ? $cost->cost_per_team : ($cost->dp_per_team ?? (int) ceil($cost->cost_per_team * 0.5)), 0, ',', '.') }}
+                                Rp {{ number_format($match->isAutoMatch() ? $cost->cost_per_team : ($cost->dp_per_team ?? $cost->cost_per_team), 0, ',', '.') }}
                             </span>
                         </div>
                         <div class="flex items-center justify-between gap-5 py-4">
                             <span class="font-semibold text-[#6F945D]">{{ $match->isAutoMatch() ? 'Biaya Admin 10%' : 'Biaya Pengelola Web 10%' }}</span>
-                            <span class="text-right text-lg font-black text-[#0B5D1E]">Rp {{ number_format($cost->handling_fee ?? (int) ceil($cost->total_cost * 0.1), 0, ',', '.') }}</span>
+                            <span class="text-right text-lg font-black text-[#0B5D1E]">Rp {{ number_format($cost->handling_fee ?? (int) ceil(($match->isAutoMatch() ? $cost->cost_per_team : ($cost->dp_per_team ?? $cost->cost_per_team)) * 0.1), 0, ',', '.') }}</span>
                         </div>
                     </div>
 
@@ -316,23 +350,27 @@
                         @if($currentPayment?->payment_status === 'paid')
                             <div class="rounded-2xl bg-green-50 px-5 py-4 text-center font-black text-green-700 ring-1 ring-green-200">
                                 Sudah Dibayar
+                                @if($refundEligible)
+                                    <p class="mt-1 text-xs font-semibold text-green-600">Bisa refund demo jika pertandingan dibatalkan.</p>
+                                @endif
                             </div>
                         @elseif($currentPayment?->payment_status === 'refunded')
                             <div class="rounded-2xl bg-blue-50 px-5 py-4 text-center font-black text-blue-700 ring-1 ring-blue-200">
                                 Sudah Direfund
+                                @if($currentPayment->refund_reference)
+                                    <p class="mt-1 break-all text-xs font-semibold text-blue-600">Ref: {{ $currentPayment->refund_reference }}</p>
+                                @endif
                             </div>
                         @elseif($booking && $currentTeamId && in_array($currentTeamId, [$match->team_a_id, $match->team_b_id], true) && $payableAmount > 0)
-                            <form method="POST" action="{{ route('payments.store') }}" class="grid gap-3">
+                            <form id="match-midtrans-finish-form" method="POST" action="{{ route('payments.midtrans_finish') }}" class="grid gap-3">
                                 @csrf
                                 <input type="hidden" name="booking_id" value="{{ $booking->id }}">
-                                <input type="hidden" name="return_to_match" value="1">
-                                <select name="payment_method" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-sm font-bold text-[#0B5D1E] outline-none focus:border-[#2E8B3C]">
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="e-wallet">E-Wallet</option>
-                                    <option value="cash">Cash</option>
-                                </select>
-                                <button type="submit" class="w-full rounded-2xl bg-[#2E8B3C] px-5 py-3 text-sm font-black text-white transition hover:bg-[#23742F]">
-                                    Bayar Sekarang
+                                <input type="hidden" name="midtrans_order_id" id="match_midtrans_order_id">
+                                <input type="hidden" name="midtrans_transaction_status" id="match_midtrans_transaction_status">
+                                <input type="hidden" name="midtrans_payment_type" id="match_midtrans_payment_type">
+                                <input type="hidden" name="midtrans_transaction_id" id="match_midtrans_transaction_id">
+                                <button type="button" id="match-midtrans-pay" data-booking-id="{{ $booking->id }}" class="w-full rounded-2xl bg-[#2E8B3C] px-5 py-3 text-sm font-black text-white transition hover:bg-[#23742F] disabled:cursor-not-allowed disabled:bg-[#9CC298]">
+                                    Bayar Sekarang via Midtrans
                                 </button>
                             </form>
                         @elseif(! $booking)
@@ -352,4 +390,65 @@
         </section>
     </main>
 </div>
+@if($booking && $currentTeamId && in_array($currentTeamId, [$match->team_a_id, $match->team_b_id], true) && $payableAmount > 0 && $currentPayment?->payment_status !== 'paid' && config('services.midtrans.client_key'))
+    <script src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+@endif
+<script>
+    const matchMidtransPay = document.getElementById('match-midtrans-pay');
+    const matchMidtransForm = document.getElementById('match-midtrans-finish-form');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    matchMidtransPay?.addEventListener('click', async () => {
+        if (!window.snap) {
+            alert('Midtrans Snap belum siap. Pastikan MIDTRANS_CLIENT_KEY sudah diisi di .env.');
+            return;
+        }
+
+        matchMidtransPay.disabled = true;
+        matchMidtransPay.textContent = 'Membuka Midtrans...';
+
+        try {
+            const response = await fetch('{{ route('payments.midtrans_token') }}', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({
+                    booking_id: matchMidtransPay.dataset.bookingId,
+                }),
+            });
+            const payload = await response.json();
+
+            if (!response.ok) {
+                throw new Error(payload.message || 'Gagal membuat transaksi Midtrans.');
+            }
+
+            window.snap.pay(payload.token, {
+                onSuccess(result) {
+                    document.getElementById('match_midtrans_order_id').value = payload.order_id;
+                    document.getElementById('match_midtrans_transaction_status').value = result.transaction_status || 'settlement';
+                    document.getElementById('match_midtrans_payment_type').value = result.payment_type || 'midtrans';
+                    document.getElementById('match_midtrans_transaction_id').value = result.transaction_id || '';
+                    matchMidtransForm.submit();
+                },
+                onPending() {
+                    alert('Pembayaran belum selesai. DP belum dicatat sampai pembayaran berhasil.');
+                },
+                onError() {
+                    alert('Pembayaran gagal. Silakan coba lagi.');
+                },
+                onClose() {
+                    alert('Popup pembayaran ditutup. DP belum dicatat.');
+                },
+            });
+        } catch (error) {
+            alert(error.message || 'Gagal membuka Midtrans.');
+        } finally {
+            matchMidtransPay.disabled = false;
+            matchMidtransPay.textContent = 'Bayar Sekarang via Midtrans';
+        }
+    });
+</script>
 @endsection

@@ -62,11 +62,11 @@
                                 </div>
                                 <div class="rounded-2xl bg-[#F1F8E9] p-4">
                                     <p class="text-xs text-[#2E7D32]/70">DP 50%</p>
-                                    <p class="text-xl font-bold text-[#1B5E20]">Rp {{ number_format($challenge->matchCost?->dp_per_team ?? (int) ceil(($challenge->matchCost?->cost_per_team ?? 0) * 0.5), 0, ',', '.') }}</p>
+                                    <p class="text-xl font-bold text-[#1B5E20]">Rp {{ number_format($challenge->matchCost?->dp_per_team ?? ($challenge->matchCost?->cost_per_team ?? 0), 0, ',', '.') }}</p>
                                 </div>
                                 <div class="rounded-2xl bg-[#F1F8E9] p-4">
                                     <p class="text-xs text-[#2E7D32]/70">Biaya Pengelola Web 10%</p>
-                                    <p class="text-xl font-bold text-[#1B5E20]">Rp {{ number_format($challenge->matchCost?->handling_fee ?? (int) ceil(($challenge->matchCost?->total_cost ?? 0) * 0.1), 0, ',', '.') }}</p>
+                                    <p class="text-xl font-bold text-[#1B5E20]">Rp {{ number_format($challenge->matchCost?->handling_fee ?? (int) ceil(($challenge->matchCost?->dp_per_team ?? ($challenge->matchCost?->cost_per_team ?? 0)) * 0.1), 0, ',', '.') }}</p>
                                 </div>
                             </div>
 

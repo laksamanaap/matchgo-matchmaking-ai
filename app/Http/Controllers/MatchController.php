@@ -10,8 +10,11 @@ use App\Models\MatchCost;
 use App\Models\MatchRequest;
 use App\Models\Payment;
 use App\Models\Team;
+use App\Models\Venue;
+use App\Models\VenueSchedule;
 use App\Notifications\MatchNotification;
 use App\Services\MatchmakingService;
+use App\Services\MidtransSnapService;
 use App\Services\PaymentAmountService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -269,13 +272,168 @@ class MatchController extends Controller
             ->get();
 
         $defaultMatchTime = $service->defaultMatchTime();
+        $pendingChallenge = session('pending_challenge');
+
+        if ($pendingChallenge && ($pendingChallenge['team_id'] ?? null) !== $team->id) {
+            session()->forget('pending_challenge');
+            $pendingChallenge = null;
+        }
+
+        $pendingField = $pendingChallenge ? Field::find($pendingChallenge['field_id'] ?? null) : null;
+
+        if ($pendingChallenge && ! $pendingField) {
+            session()->forget('pending_challenge');
+            $pendingChallenge = null;
+        }
+
+        $pendingPayment = null;
+
+        if ($pendingChallenge && $pendingField) {
+            $durationHours = (int) ceil(($pendingChallenge['duration_minutes'] ?? 60) / 60);
+            $totalCost = $pendingField->price_per_hour * $durationHours;
+            $costPerTeam = (int) round($totalCost / 2);
+            $dpPerTeam = $costPerTeam;
+            $handlingFee = (int) ceil($dpPerTeam * 0.1);
+
+            $pendingPayment = [
+                'field' => $pendingField,
+                'match_date' => $pendingChallenge['match_date'],
+                'start_time' => $pendingChallenge['start_time'],
+                'duration_minutes' => $pendingChallenge['duration_minutes'],
+                'total_cost' => $totalCost,
+                'cost_per_team' => $costPerTeam,
+                'dp_per_team' => $dpPerTeam,
+                'handling_fee' => $handlingFee,
+                'pay_now' => $dpPerTeam + $handlingFee,
+            ];
+        }
+
+        $scheduleOptions = $this->availableScheduleOptions($fields);
 
         return view('matches.create', [
             'team' => $team,
             'fields' => $fields,
             'myChallenges' => $myChallenges,
-            'defaultMatchTime' => $service->defaultMatchTime(),
+            'defaultMatchTime' => $defaultMatchTime,
+            'pendingPayment' => $pendingPayment,
+            'scheduleOptions' => $scheduleOptions,
         ]);
+    }
+
+    protected function availableScheduleOptions($fields): array
+    {
+        $fields = collect($fields);
+        $venuesByName = Venue::query()
+            ->whereIn('name', $fields->pluck('name')->filter()->unique()->values())
+            ->get()
+            ->keyBy('name');
+
+        $fieldByVenueId = $fields
+            ->mapWithKeys(function ($field) use ($venuesByName) {
+                $venue = $venuesByName->get($field->name);
+
+                return $venue ? [$venue->id => $field] : [];
+            });
+
+        if ($fieldByVenueId->isEmpty()) {
+            return [];
+        }
+
+        $schedules = VenueSchedule::query()
+            ->whereIn('venue_id', $fieldByVenueId->keys())
+            ->whereDate('date', '>=', now()->toDateString())
+            ->where('is_booked', false)
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get();
+
+        $options = [];
+
+        foreach ($schedules as $schedule) {
+            $field = $fieldByVenueId->get($schedule->venue_id);
+
+            if (! $field) {
+                continue;
+            }
+
+            $date = $schedule->date->toDateString();
+            $start = Carbon::parse($date . ' ' . $schedule->start_time);
+            $end = Carbon::parse($date . ' ' . $schedule->end_time);
+
+            if ($end->lessThanOrEqualTo($start)) {
+                $end->addDay();
+            }
+
+            if ($start->lt(now())) {
+                continue;
+            }
+
+            $durationMinutes = $start->diffInMinutes($end);
+            $startTime = $start->format('H:i');
+
+            foreach ([60, 120] as $duration) {
+                if ($durationMinutes < $duration) {
+                    continue;
+                }
+
+                $slotEnd = $start->copy()->addMinutes($duration);
+
+                if (! $this->isFieldSlotFree($field, $start, $slotEnd)) {
+                    continue;
+                }
+
+                $options[$field->id][$date][$duration][] = [
+                    'value' => $startTime,
+                    'label' => $start->format('H:i') . ' - ' . $slotEnd->format('H:i'),
+                    'schedule_id' => $schedule->id,
+                ];
+            }
+        }
+
+        return $options;
+    }
+
+    protected function availableVenueScheduleFor(Field $field, string $matchDate, string $startTime, int $durationMinutes): ?VenueSchedule
+    {
+        $venue = Venue::query()->where('name', $field->name)->first();
+
+        if (! $venue) {
+            return null;
+        }
+
+        $bookingStart = Carbon::parse("$matchDate $startTime");
+        $bookingEnd = $bookingStart->copy()->addMinutes($durationMinutes);
+
+        if ($bookingStart->lt(now()) || ! $this->isFieldSlotFree($field, $bookingStart, $bookingEnd)) {
+            return null;
+        }
+
+        return VenueSchedule::query()
+            ->where('venue_id', $venue->id)
+            ->whereDate('date', $matchDate)
+            ->where('is_booked', false)
+            ->get()
+            ->first(function (VenueSchedule $schedule) use ($matchDate, $bookingStart, $bookingEnd) {
+                $scheduleStart = Carbon::parse($matchDate . ' ' . $schedule->start_time);
+                $scheduleEnd = Carbon::parse($matchDate . ' ' . $schedule->end_time);
+
+                if ($scheduleEnd->lessThanOrEqualTo($scheduleStart)) {
+                    $scheduleEnd->addDay();
+                }
+
+                return $bookingStart->equalTo($scheduleStart)
+                    && $bookingEnd->lessThanOrEqualTo($scheduleEnd);
+            });
+    }
+
+    protected function isFieldSlotFree(Field $field, Carbon $start, Carbon $end): bool
+    {
+        return ! Booking::query()
+            ->where('field_id', $field->id)
+            ->where('status', '!=', 'cancelled')
+            ->where('start_at', '<', $end)
+            ->whereRaw('DATE_ADD(start_at, INTERVAL duration_hours HOUR) > ?', [$start])
+            ->exists();
     }
 
     protected function haversineKm(float $lat1, float $lng1, float $lat2, float $lng2): float
@@ -305,7 +463,7 @@ class MatchController extends Controller
         ]);
     }
 
-    public function store(Request $request, PaymentAmountService $paymentAmounts)
+    public function store(Request $request)
     {
         $request->validate([
             'field_id' => ['required', 'exists:fields,id'],
@@ -339,11 +497,10 @@ class MatchController extends Controller
         $field = Field::findOrFail($request->field_id);
         $matchDate = $request->match_date;
         $startTime = $request->start_time;
-        $durationHours = (int) ceil($request->duration_minutes / 60);
+        $durationMinutes = (int) $request->duration_minutes;
 
         // Cek ketersediaan lapangan
         $bookingStartTime = Carbon::parse("$matchDate $startTime");
-        $bookingEndTime = $bookingStartTime->copy()->addMinutes((int) $request->duration_minutes);
 
         if ($bookingStartTime->lt(now())) {
             return back()
@@ -351,18 +508,160 @@ class MatchController extends Controller
                 ->withInput();
         }
 
-        $booking = Booking::query()
-            ->where('field_id', $field->id)
-            ->where('status', '!=', 'cancelled')
-            ->where('start_at', '<', $bookingEndTime)
-            ->whereRaw('DATE_ADD(start_at, INTERVAL duration_hours HOUR) > ?', [$bookingStartTime])
-            ->first();
+        $availableSchedule = $this->availableVenueScheduleFor($field, $matchDate, $startTime, $durationMinutes);
 
-        if ($booking) {
-            return back()->withErrors(['message' => 'Lapangan tidak tersedia pada jam tersebut.']);
+        if (! $availableSchedule) {
+            return back()
+                ->withErrors(['start_time' => 'Jadwal lapangan tidak tersedia pada tanggal, jam, dan durasi tersebut.'])
+                ->withInput();
         }
 
-        $match = DB::transaction(function () use ($team, $field, $matchDate, $startTime, $request, $bookingStartTime, $durationHours, $paymentAmounts) {
+        session()->put('pending_challenge', [
+            'team_id' => $team->id,
+            'field_id' => $field->id,
+            'match_date' => $matchDate,
+            'start_time' => $startTime,
+            'duration_minutes' => $durationMinutes,
+        ]);
+
+        return redirect()
+            ->route('matches.create')
+            ->withInput()
+            ->with('payment_required', 'Slot lapangan tersedia. Silakan bayar DP 50% + biaya web 10% untuk mencatat pertandingan dan mengunci booking.');
+    }
+
+    public function midtransToken(MidtransSnapService $midtrans)
+    {
+        $team = Auth::user()->team;
+        $pendingChallenge = session('pending_challenge');
+
+        if (! $team || ! $pendingChallenge || ($pendingChallenge['team_id'] ?? null) !== $team->id) {
+            return response()->json(['message' => 'Data pertandingan belum tersedia.'], 422);
+        }
+
+        if ($team->owner_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (! $team->isVerified() || ! $team->hasMinimumPlayers()) {
+            return response()->json(['message' => 'Tim harus terverifikasi dan memiliki minimal 5 pemain.'], 422);
+        }
+
+        $field = Field::findOrFail($pendingChallenge['field_id']);
+        $matchDate = $pendingChallenge['match_date'];
+        $startTime = $pendingChallenge['start_time'];
+        $durationMinutes = (int) $pendingChallenge['duration_minutes'];
+        $bookingStartTime = Carbon::parse("$matchDate $startTime");
+
+        if ($bookingStartTime->lt(now())) {
+            session()->forget('pending_challenge');
+
+            return response()->json(['message' => 'Jam pertandingan sudah lewat. Pilih tanggal dan jam lain.'], 422);
+        }
+
+        if (! $this->availableVenueScheduleFor($field, $matchDate, $startTime, $durationMinutes)) {
+            session()->forget('pending_challenge');
+
+            return response()->json(['message' => 'Lapangan sudah tidak tersedia pada slot tersebut. Pilih jadwal lain.'], 422);
+        }
+
+        $durationHours = (int) ceil($durationMinutes / 60);
+        $totalCost = $field->price_per_hour * $durationHours;
+        $dp = (int) round($totalCost / 2);
+        $fee = (int) ceil($dp * 0.1);
+        $amount = $dp + $fee;
+        $orderId = 'MG-DP-' . $team->id . '-' . now()->format('YmdHisv');
+
+        try {
+            $snap = $midtrans->createToken($orderId, $amount, [
+                'first_name' => $team->owner?->name ?? $team->name,
+                'email' => $team->owner?->email,
+            ], [
+                [
+                    'id' => 'matchgo-dp-' . $field->id,
+                    'price' => $dp,
+                    'quantity' => 1,
+                    'name' => 'DP 50% ' . $field->name,
+                ],
+                [
+                    'id' => 'matchgo-web-fee',
+                    'price' => $fee,
+                    'quantity' => 1,
+                    'name' => 'Biaya web 10% dari DP',
+                ],
+            ]);
+        } catch (\RuntimeException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        session()->put('pending_challenge_midtrans_order_id', $orderId);
+
+        return response()->json([
+            'token' => $snap['token'] ?? null,
+            'order_id' => $orderId,
+        ]);
+    }
+
+    public function payAndCreate(Request $request, PaymentAmountService $paymentAmounts)
+    {
+        $data = $request->validate([
+            'midtrans_order_id' => ['required', 'string'],
+            'midtrans_transaction_status' => ['required', 'in:settlement,capture'],
+            'midtrans_payment_type' => ['nullable', 'string', 'max:50'],
+            'midtrans_transaction_id' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $team = Auth::user()->team;
+        $pendingChallenge = session('pending_challenge');
+
+        if (! $team || ! $pendingChallenge || ($pendingChallenge['team_id'] ?? null) !== $team->id) {
+            return redirect()
+                ->route('matches.create')
+                ->withErrors(['message' => 'Data pertandingan belum tersedia. Isi detail pertandingan terlebih dahulu.']);
+        }
+
+        if (session('pending_challenge_midtrans_order_id') !== $data['midtrans_order_id']) {
+            return redirect()
+                ->route('matches.create')
+                ->withErrors(['message' => 'Transaksi Midtrans tidak cocok. Silakan ulangi pembayaran.']);
+        }
+
+        if ($team->owner_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (! $team->isVerified() || ! $team->hasMinimumPlayers()) {
+            return redirect()
+                ->route('matches.create')
+                ->withErrors(['message' => 'Tim harus terverifikasi dan memiliki minimal 5 pemain untuk membuat pertandingan.']);
+        }
+
+        $field = Field::findOrFail($pendingChallenge['field_id']);
+        $matchDate = $pendingChallenge['match_date'];
+        $startTime = $pendingChallenge['start_time'];
+        $durationMinutes = (int) $pendingChallenge['duration_minutes'];
+        $durationHours = (int) ceil($durationMinutes / 60);
+        $bookingStartTime = Carbon::parse("$matchDate $startTime");
+
+        if ($bookingStartTime->lt(now())) {
+            session()->forget('pending_challenge');
+
+            return redirect()
+                ->route('matches.create')
+                ->withErrors(['message' => 'Jam pertandingan sudah lewat. Pilih tanggal dan jam yang masih akan datang.']);
+        }
+
+        $availableSchedule = $this->availableVenueScheduleFor($field, $matchDate, $startTime, $durationMinutes);
+
+        if (! $availableSchedule) {
+            session()->forget('pending_challenge');
+
+            return redirect()
+                ->route('matches.create')
+                ->withErrors(['message' => 'Lapangan sudah tidak tersedia pada jam tersebut. Pilih slot lain.']);
+        }
+
+        $match = DB::transaction(function () use ($team, $field, $matchDate, $startTime, $durationMinutes, $bookingStartTime, $durationHours, $paymentAmounts, $availableSchedule, $data) {
             $match = FutsalMatch::create([
                 'match_request_id' => null,
                 'venue_id' => null,
@@ -371,7 +670,7 @@ class MatchController extends Controller
                 'team_b_id' => null,
                 'match_date' => $matchDate,
                 'start_time' => $startTime,
-                'duration_minutes' => $request->duration_minutes,
+                'duration_minutes' => $durationMinutes,
                 'status' => 'scheduled',
             ]);
 
@@ -389,10 +688,10 @@ class MatchController extends Controller
                 'match_id' => $match->id,
                 'total_cost' => $totalCost,
                 'cost_per_team' => (int) round($totalCost / 2),
-                'dp_per_team' => (int) ceil(($totalCost / 2) * 0.5),
-                'handling_fee' => (int) ceil($totalCost * 0.1),
+                'dp_per_team' => (int) round($totalCost / 2),
+                'handling_fee' => (int) ceil(round($totalCost / 2) * 0.1),
                 'cost_per_player' => (int) round($totalCost / max(1, $team->player_count ?: 1)),
-                'payment_notes' => "Biaya lapangan {$field->name} dibagi 2 tim. DP 50% dari biaya per tim wajib dibayar saat pertandingan dibuat. Biaya pengelola web 10%. Refund maksimal 6 jam setelah pertandingan dibuat.",
+                'payment_notes' => "Biaya lapangan {$field->name} dibagi 2 tim. Kapten pembuat wajib membayar DP 50% dari harga lapangan ditambah biaya pengelola web 10% dari DP. Refund maksimal 6 jam setelah pertandingan dibuat.",
             ]);
 
             Payment::updateOrCreate([
@@ -400,12 +699,22 @@ class MatchController extends Controller
                 'team_id' => $team->id,
             ], [
                 'amount' => $paymentAmounts->regularMatchAmount($matchCost),
-                'payment_method' => 'bank_transfer',
+                'payment_method' => $data['midtrans_payment_type'] ?? 'midtrans',
                 'payment_status' => 'paid',
+                'midtrans_order_id' => $data['midtrans_order_id'],
+                'midtrans_transaction_id' => $data['midtrans_transaction_id'] ?? null,
+                'refund_reference' => null,
+                'refund_note' => null,
+                'refunded_at' => null,
             ]);
+
+            $availableSchedule->update(['is_booked' => true]);
 
             return $match;
         });
+
+        session()->forget('pending_challenge');
+        session()->forget('pending_challenge_midtrans_order_id');
 
         $team->owner->notify(new MatchNotification(
             'challenge_created',
@@ -413,7 +722,7 @@ class MatchController extends Controller
             $match->id
         ));
 
-        return redirect()->route('matches.show', $match)->with('success', 'Tantangan dibuat, lapangan sudah dibooking, dan DP 50% + biaya pengelola web 10% sudah tercatat dibayar.');
+        return redirect()->route('matches.show', $match)->with('success', 'DP berhasil dibayar. Pertandingan berhasil dibuat, lapangan terbooking, dan tantangan tampil sebagai tantangan terbuka.');
     }
 
     public function accept(FutsalMatch $match)
@@ -471,7 +780,7 @@ class MatchController extends Controller
             $match->id
         ));
 
-        return redirect()->route('matches.show', $match)->with('success', 'Tantangan berhasil diambil. Lapangan sudah terbooking dan biaya dibagi 2 tim.');
+        return redirect()->route('matches.show', $match)->with('success', 'Tantangan berhasil diambil. Silakan bayar DP tim kamu lewat Midtrans.');
     }
 
     public function autoStore(Request $request, MatchmakingService $service)
@@ -681,7 +990,7 @@ class MatchController extends Controller
         return response()->json(['message' => 'Match request rejected successfully']);
     }
 
-    public function cancel(FutsalMatch $match)
+    public function cancel(FutsalMatch $match, MidtransSnapService $midtrans)
     {
         $this->authorizeMatchCancel($match);
 
@@ -700,11 +1009,13 @@ class MatchController extends Controller
         $match->update(['status' => 'cancelled']);
         $match->booking?->update(['status' => 'cancelled']);
 
+        $refundedCount = 0;
+
         if ($refundAllowed) {
-            $match->booking?->payments()
-                ->where('payment_status', 'paid')
-                ->update(['payment_status' => 'refunded']);
+            $refundedCount = $this->refundPaidPaymentsForCancelledMatch($match, $midtrans);
         }
+
+        $this->releaseVenueScheduleForMatch($match);
 
         $match->teamA->owner->notify(new MatchNotification(
             'match_cancelled',
@@ -721,10 +1032,68 @@ class MatchController extends Controller
         }
 
         $message = $refundAllowed
-            ? 'Pertandingan berhasil dibatalkan. DP yang sudah dibayar ditandai refund karena pembatalan masih dalam 6 jam setelah pertandingan dibuat.'
+            ? 'Pertandingan berhasil dibatalkan. Refund demo Midtrans dibuat untuk ' . $refundedCount . ' pembayaran dan slot lapangan dilepas.'
             : 'Pertandingan berhasil dibatalkan. DP hangus karena pembatalan dilakukan lebih dari 6 jam setelah pertandingan dibuat.';
 
-        return redirect()->route('matches.take')->with('success', $message);
+        return redirect()->route('matches.show', $match)->with('success', $message);
+    }
+
+    protected function refundPaidPaymentsForCancelledMatch(FutsalMatch $match, MidtransSnapService $midtrans): int
+    {
+        $payments = $match->booking?->payments()
+            ->where('payment_status', 'paid')
+            ->get() ?? collect();
+
+        $refundedCount = 0;
+
+        foreach ($payments as $payment) {
+            $orderId = $payment->midtrans_order_id ?: 'MATCHGO-DEMO-PAYMENT-' . $payment->id;
+            $amount = (int) round((float) $payment->amount);
+            $reason = 'Demo refund pembatalan match #' . $match->id;
+
+            try {
+                $refund = $midtrans->refundDemo($orderId, $amount, $reason);
+            } catch (\Throwable $exception) {
+                $refund = [
+                    'refund_key' => 'RF-LOCAL-' . now()->format('YmdHisv') . '-' . $payment->id,
+                    'status_message' => 'Fallback demo refund lokal: ' . $exception->getMessage(),
+                    'source' => 'local_fallback',
+                ];
+            }
+
+            $payment->update([
+                'payment_status' => 'refunded',
+                'refund_reference' => $refund['refund_key'] ?? ('RF-DEMO-' . $payment->id),
+                'refund_note' => ($refund['status_message'] ?? 'Demo refund berhasil.') . ' (' . ($refund['source'] ?? 'demo') . ')',
+                'refunded_at' => now(),
+            ]);
+
+            $refundedCount++;
+        }
+
+        return $refundedCount;
+    }
+
+    protected function releaseVenueScheduleForMatch(FutsalMatch $match): void
+    {
+        $field = $match->booking?->field ?? $match->field;
+
+        if (! $field) {
+            return;
+        }
+
+        $venue = Venue::query()->where('name', $field->name)->first();
+
+        if (! $venue) {
+            return;
+        }
+
+        VenueSchedule::query()
+            ->where('venue_id', $venue->id)
+            ->whereDate('date', $match->match_date)
+            ->whereTime('start_time', Carbon::parse($match->start_time)->format('H:i:s'))
+            ->where('is_booked', true)
+            ->update(['is_booked' => false]);
     }
 
     protected function authorizeMatchView(FutsalMatch $match): void

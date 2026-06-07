@@ -28,8 +28,8 @@ class MatchCostService
         $costPerTeam = (int) ($totalCost / 2);
         $dpPerTeam = $match->isAutoMatch()
             ? $costPerTeam
-            : (int) ceil($costPerTeam * 0.5);
-        $handlingFee = (int) ceil($totalCost * 0.1);
+            : $costPerTeam;
+        $handlingFee = (int) ceil($dpPerTeam * 0.1);
 
         // Prioritas: pemain yang hadir (attended=true) → semua terdaftar → fallback team.player_count
         $attendedCount = $match->matchPlayers
@@ -54,7 +54,7 @@ class MatchCostService
                 'cost_per_player' => $costPerPlayer,
                 'payment_notes' => $match->isAutoMatch()
                     ? 'AutoMatching wajib lunas 100% dari biaya per tim ditambah biaya admin 10%.'
-                    : 'DP 50% dari biaya per tim wajib dibayar saat pertandingan dibuat. Biaya pengelola web 10%. Refund maksimal 6 jam setelah pertandingan dibuat.',
+                    : 'DP 50% dari harga lapangan wajib dibayar saat pertandingan dibuat. Biaya pengelola web 10% dari DP. Refund maksimal 6 jam setelah pertandingan dibuat.',
             ]
         );
     }

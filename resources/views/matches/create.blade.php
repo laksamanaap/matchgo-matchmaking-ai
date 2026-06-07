@@ -17,6 +17,34 @@
                 </a>
             </div>
 
+            @if(session('payment_required') || $pendingPayment)
+                <div id="payment-required-modal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-[#143D1F]/45 p-4">
+                    <div class="w-full max-w-lg rounded-3xl border border-amber-200 bg-white p-6 text-center shadow-2xl shadow-[#1B5E20]/20 sm:p-8">
+                        <div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-amber-100 text-amber-700 ring-1 ring-amber-200">
+                            <x-heroicon-o-exclamation-triangle class="h-9 w-9" />
+                        </div>
+                        <h2 class="mt-5 text-2xl font-black text-amber-800">Bayar DP terlebih dahulu</h2>
+                        <p class="mt-3 text-sm font-semibold leading-6 text-amber-700">
+                                {{ session('payment_required') ?? 'Pertandingan belum dicatat dan lapangan belum terbooking. Bayar DP 50% + biaya web 10% dari DP untuk membuat pertandingan.' }}
+                        </p>
+                        <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                            <button type="button" id="payment-required-close" class="rounded-2xl border border-amber-200 bg-white px-5 py-3 text-sm font-black text-amber-700 transition hover:bg-amber-50">
+                                Nanti Dulu
+                            </button>
+                            @if($pendingPayment)
+                                <button type="button" id="payment-required-pay" class="rounded-2xl bg-amber-600 px-5 py-3 text-sm font-black text-white transition hover:bg-amber-700">
+                                    Bayar Sekarang
+                                </button>
+                            @else
+                                <button type="button" id="payment-required-pay" class="rounded-2xl bg-amber-600 px-5 py-3 text-sm font-black text-white transition hover:bg-amber-700">
+                                    Mengerti
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="grid gap-6 lg:grid-cols-[1.55fr_0.95fr]">
                 <form method="POST" action="{{ route('matches.store') }}" class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10 sm:p-8">
                     @csrf
@@ -111,36 +139,93 @@
                             </div>
                         </div>
 
-                        <div class="grid gap-5 md:grid-cols-3">
+                        <div class="grid gap-5 md:grid-cols-[0.75fr_1.25fr]">
                             <div>
                                 <label class="mb-2 block text-sm font-bold text-[#1B5E20]">Tanggal</label>
-                                <input type="date" name="match_date" value="{{ old('match_date', $defaultMatchTime->format('Y-m-d')) }}" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('match_date') border-red-500 @enderror" />
+                                <input id="match_date" type="date" name="match_date" value="{{ old('match_date') }}" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('match_date') border-red-500 @enderror">
                                 @error('match_date') <span class="mt-1 block text-sm text-red-500">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
-                                <label class="mb-2 block text-sm font-bold text-[#1B5E20]">Jam Mulai</label>
-                                <input type="time" name="start_time" value="{{ old('start_time', $defaultMatchTime->format('H:i')) }}" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('start_time') border-red-500 @enderror" />
-                                @error('start_time') <span class="mt-1 block text-sm text-red-500">{{ $message }}</span> @enderror
-                            </div>
+                                <label class="mb-2 block text-sm font-bold text-[#1B5E20]">Jadwal Tersedia</label>
+                                <input id="start_time" type="hidden" name="start_time" value="{{ old('start_time') }}">
+                                <input id="duration_minutes" type="hidden" name="duration_minutes" value="{{ old('duration_minutes', 60) }}">
+                                <input id="schedule_slot" type="hidden" value="" data-old-date="{{ old('match_date') }}" data-old-time="{{ old('start_time') }}" data-old-duration="{{ old('duration_minutes') }}">
 
-                            <div>
-                                <label class="mb-2 block text-sm font-bold text-[#1B5E20]">Durasi</label>
-                                <select id="duration_minutes" name="duration_minutes" required class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('duration_minutes') border-red-500 @enderror">
-                                    <option value="60" {{ old('duration_minutes', 60) == 60 ? 'selected' : '' }}>60 menit</option>
-                                    <option value="120" {{ old('duration_minutes') == 120 ? 'selected' : '' }}>120 menit</option>
-                                </select>
+                                <div id="schedule-combobox" class="relative">
+                                    <button type="button" id="schedule-trigger" aria-haspopup="listbox" aria-expanded="false"
+                                        class="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 text-left text-[#0B5D1E] outline-none transition focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20 @error('start_time') border-red-500 @enderror @error('duration_minutes') border-red-500 @enderror">
+                                        <span id="schedule-trigger-label" class="truncate text-[#7BA877]">Pilih lapangan dan tanggal dulu...</span>
+                                        <x-heroicon-o-chevron-up-down class="h-5 w-5 shrink-0 text-[#4B8B43]" />
+                                    </button>
+
+                                    <div id="schedule-panel" class="absolute z-20 mt-2 hidden w-full overflow-hidden rounded-2xl border border-[#C8E6C9] bg-white shadow-xl shadow-[#1B5E20]/10">
+                                        <div class="flex items-center gap-2 border-b border-[#EAF4E6] px-3 py-2.5">
+                                            <x-heroicon-o-magnifying-glass class="h-4 w-4 shrink-0 text-[#4B8B43]" />
+                                            <input type="text" id="schedule-search" autocomplete="off" placeholder="Cari jam atau durasi..."
+                                                class="w-full bg-transparent text-sm text-[#0B5D1E] outline-none placeholder:text-[#9CC298]" />
+                                        </div>
+                                        <ul id="schedule-options" role="listbox" class="max-h-72 overflow-y-auto overflow-x-hidden p-1.5"></ul>
+                                        <p id="schedule-empty" class="hidden px-4 py-6 text-center text-sm font-semibold text-[#4B8B43]">Jadwal tidak tersedia.</p>
+                                    </div>
+                                </div>
+                                @error('start_time') <span class="mt-1 block text-sm text-red-500">{{ $message }}</span> @enderror
                                 @error('duration_minutes') <span class="mt-1 block text-sm text-red-500">{{ $message }}</span> @enderror
                             </div>
                         </div>
                     </div>
 
                     <button type="submit" class="mt-8 w-full rounded-2xl bg-[#2E8B3C] px-5 py-4 text-base font-black text-white shadow-md shadow-[#1B5E20]/15 transition hover:bg-[#23742F]">
-                        Buat Pertandingan & Bayar DP
+                        Submit Data Pertandingan
                     </button>
                 </form>
 
                 <aside class="grid gap-6">
+                    @if($pendingPayment)
+                        <div id="payment-dp-panel" class="rounded-3xl border border-[#C8E6C9] bg-white p-6 shadow-xl shadow-[#1B5E20]/10">
+                            <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#4B8B43]">Pembayaran DP</p>
+                            <div class="mt-4 rounded-2xl bg-[#F1F8E9] p-4">
+                                <p class="text-sm font-black text-[#0B5D1E]">{{ $pendingPayment['field']->name }}</p>
+                                <p class="mt-1 text-sm font-semibold text-[#4B8B43]">
+                                    {{ \Carbon\Carbon::parse($pendingPayment['match_date'])->format('d M Y') }},
+                                    {{ \Carbon\Carbon::parse($pendingPayment['start_time'])->format('H:i') }}
+                                    - {{ $pendingPayment['duration_minutes'] }} menit
+                                </p>
+                            </div>
+
+                            <div class="mt-4 divide-y divide-[#E4ECDf] text-sm">
+                                <div class="flex items-center justify-between gap-4 py-3">
+                                    <span class="font-semibold text-[#4B8B43]">Harga Lapangan</span>
+                                    <span class="font-black text-[#0B5D1E]">Rp {{ number_format($pendingPayment['total_cost'], 0, ',', '.') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-4 py-3">
+                                    <span class="font-semibold text-[#4B8B43]">DP 50% dari Total Harga</span>
+                                    <span class="font-black text-[#0B5D1E]">Rp {{ number_format($pendingPayment['dp_per_team'], 0, ',', '.') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-4 py-3">
+                                    <span class="font-semibold text-[#4B8B43]">Biaya Web 10% dari DP</span>
+                                    <span class="font-black text-[#0B5D1E]">Rp {{ number_format($pendingPayment['handling_fee'], 0, ',', '.') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-4 py-3">
+                                    <span class="font-black text-[#0B5D1E]">Total Bayar</span>
+                                    <span class="text-lg font-black text-[#0B5D1E]">Rp {{ number_format($pendingPayment['pay_now'], 0, ',', '.') }}</span>
+                                </div>
+                            </div>
+
+                            <form id="create-midtrans-finish-form" method="POST" action="{{ route('matches.pay_and_create') }}" class="mt-5 grid gap-3">
+                                @csrf
+                                <input type="hidden" name="midtrans_order_id" id="create_midtrans_order_id">
+                                <input type="hidden" name="midtrans_transaction_status" id="create_midtrans_transaction_status">
+                                <input type="hidden" name="midtrans_payment_type" id="create_midtrans_payment_type">
+                                <input type="hidden" name="midtrans_transaction_id" id="create_midtrans_transaction_id">
+                                <button type="button" id="create-midtrans-pay" class="w-full rounded-2xl bg-[#2E8B3C] px-5 py-3 text-sm font-black text-white transition hover:bg-[#23742F] disabled:cursor-not-allowed disabled:bg-[#9CC298]">
+                                    Bayar DP via Midtrans
+                                </button>
+                            </form>
+                            <p class="mt-3 text-xs font-semibold leading-5 text-[#4B8B43]">Pertandingan dan booking lapangan baru dicatat setelah DP berhasil dibayar.</p>
+                        </div>
+                    @endif
+
                     <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10">
                         <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#4B8B43]">Ringkasan Biaya</p>
                         <div class="mt-5 grid gap-3">
@@ -155,17 +240,31 @@
                             <div class="rounded-2xl bg-[#F1F8E9] p-4">
                                 <p class="text-xs font-semibold text-[#4B8B43]">Wajib Dibayar Sekarang</p>
                                 <p id="pay_now" class="mt-1 text-3xl font-black text-[#0B5D1E]">Rp 0</p>
-                                <p class="mt-1 text-xs font-semibold text-[#4B8B43]">DP 50% + biaya pengelola web 10%</p>
+                                <p class="mt-1 text-xs font-semibold text-[#4B8B43]">DP 50% + biaya pengelola web 10% dari DP</p>
+                                <div class="mt-3 space-y-1 border-t border-[#C8E6C9] pt-3 text-xs font-semibold text-[#4B8B43]">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span>DP 50% dari total harga</span>
+                                        <span id="pay_now_dp" class="font-black text-[#0B5D1E]">Rp 0</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span>Biaya web 10% dari DP</span>
+                                        <span id="pay_now_fee" class="font-black text-[#0B5D1E]">Rp 0</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10">
-                        <p class="text-sm font-bold text-[#1B5E20]">Cara kerja tantangan</p>
+                        <p class="text-sm font-bold text-[#1B5E20]">Alur Buat Pertandingan</p>
                         <div class="mt-4 space-y-3 text-sm text-[#4B8B43]">
-                            <p>1. Captain membuat jadwal, memilih lapangan, lalu membayar DP 50% + biaya pengelola web 10%.</p>
-                            <p>2. Tantangan muncul di halaman Cari Pertandingan.</p>
-                            <p>3. Pembatalan bisa direfund maksimal 6 jam setelah pertandingan dibuat. Lewat dari itu DP hangus.</p>
+                            <p>1. Login sebagai kapten, lalu sistem memverifikasi tim: sudah punya tim, berstatus kapten/owner, tim terverifikasi, dan minimal ada 5 pemain.</p>
+                            <p>2. Masuk ke halaman Buat Pertandingan dan isi detail pertandingan: pilih lapangan, tanggal, jam mulai, dan durasi.</p>
+                            <p>3. Sistem menghitung biaya otomatis setelah lapangan dan durasi dipilih.</p>
+                            <p>4. Submit data pertandingan, lalu sistem mengecek ketersediaan slot lapangan.</p>
+                            <p>5. Pembayaran DP wajib 50% dari harga lapangan + biaya web 10% dari DP. Contoh: harga lapangan Rp100.000, maka DP Rp50.000 + biaya web Rp5.000.</p>
+                            <p>6. Jika DP belum dibayar, lapangan belum terbooking dan pertandingan belum tercatat.</p>
+                            <p>7. Setelah berhasil, status pertandingan menjadi Scheduled dan ditampilkan sebagai tantangan terbuka.</p>
                         </div>
                     </div>
                 </aside>
@@ -219,6 +318,9 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+@if($pendingPayment && config('services.midtrans.client_key'))
+    <script src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+@endif
 
 <script>
     const rupiah = (value) => new Intl.NumberFormat('id-ID', {
@@ -228,19 +330,158 @@
     }).format(value);
 
     const fieldInput = document.getElementById('field_id');
-    const durationSelect = document.getElementById('duration_minutes');
+    const matchDateInput = document.getElementById('match_date');
+    const startTimeInput = document.getElementById('start_time');
+    const durationInput = document.getElementById('duration_minutes');
+    const scheduleSelect = document.getElementById('schedule_slot');
+    const scheduleCombo = document.getElementById('schedule-combobox');
+    const scheduleTrigger = document.getElementById('schedule-trigger');
+    const scheduleLabel = document.getElementById('schedule-trigger-label');
+    const schedulePanel = document.getElementById('schedule-panel');
+    const scheduleSearch = document.getElementById('schedule-search');
+    const scheduleOptionsList = document.getElementById('schedule-options');
+    const scheduleEmpty = document.getElementById('schedule-empty');
+    const paymentRequiredModal = document.getElementById('payment-required-modal');
+    const paymentRequiredClose = document.getElementById('payment-required-close');
+    const paymentRequiredPay = document.getElementById('payment-required-pay');
+    const createMidtransPay = document.getElementById('create-midtrans-pay');
+    const createMidtransForm = document.getElementById('create-midtrans-finish-form');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const scheduleOptions = @json($scheduleOptions);
+    let scheduleSlots = [];
 
     const updateCostPreview = () => {
         const price = Number(fieldInput.dataset.price || 0);
-        const hours = Math.ceil(Number(durationSelect.value || 0) / 60);
+        const hours = Math.ceil(Number(durationInput.value || 0) / 60);
         const total = price * hours;
         const costPerTeam = Math.round(total / 2);
-        const dp = Math.ceil(costPerTeam * 0.5);
-        const webFee = Math.ceil(total * 0.1);
+        const dp = Math.ceil(total * 0.5);
+        const webFee = Math.ceil(dp * 0.1);
 
         document.getElementById('total_cost').textContent = rupiah(total);
         document.getElementById('cost_per_team').textContent = rupiah(costPerTeam);
         document.getElementById('pay_now').textContent = rupiah(dp + webFee);
+        document.getElementById('pay_now_dp').textContent = rupiah(dp);
+        document.getElementById('pay_now_fee').textContent = rupiah(webFee);
+    };
+
+    const updateScheduleOptions = () => {
+        const fieldId = fieldInput.value;
+        const selectedDate = matchDateInput.value;
+        const formatDate = (value) => new Intl.DateTimeFormat('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).format(new Date(`${value}T00:00:00`));
+        const oldDate = scheduleSelect.dataset.oldDate || '';
+        const oldTime = scheduleSelect.dataset.oldTime || '';
+        const oldDuration = scheduleSelect.dataset.oldDuration || '';
+        const fieldSchedules = scheduleOptions[fieldId] || {};
+        scheduleSlots = [];
+
+        if (selectedDate && fieldSchedules[selectedDate]) {
+            Object.keys(fieldSchedules[selectedDate] || {}).sort((a, b) => Number(a) - Number(b)).forEach((duration) => {
+                (fieldSchedules[selectedDate][duration] || []).forEach((slot) => {
+                    scheduleSlots.push({
+                        date: selectedDate,
+                        duration,
+                        value: slot.value,
+                        timeLabel: slot.label,
+                        dateLabel: formatDate(selectedDate),
+                        label: `${formatDate(selectedDate)} - ${slot.label} - ${duration} menit`,
+                        search: `${slot.label} ${duration} menit`.toLowerCase(),
+                    });
+                });
+            });
+        }
+
+        scheduleSelect.value = '';
+        startTimeInput.value = '';
+        durationInput.value = '60';
+
+        scheduleLabel.textContent = fieldId
+            ? (selectedDate ? (scheduleSlots.length ? 'Pilih jadwal tersedia...' : 'Tidak ada jadwal tersedia') : 'Pilih tanggal dulu...')
+            : 'Pilih lapangan dan tanggal dulu...';
+        scheduleLabel.classList.add('text-[#7BA877]');
+        scheduleLabel.classList.remove('text-[#0B5D1E]', 'font-semibold');
+
+        renderScheduleOptions('');
+        scheduleTrigger.disabled = !fieldId || !selectedDate || scheduleSlots.length === 0;
+
+        const oldSlot = scheduleSlots.find((slot) => slot.date === oldDate && slot.value === oldTime && String(slot.duration) === String(oldDuration));
+        if (oldSlot) selectScheduleSlot(`${oldSlot.date}|${oldSlot.value}|${oldSlot.duration}`);
+        else updateCostPreview();
+    };
+
+    const syncSelectedSchedule = () => {
+        if (!scheduleSelect.value) {
+            startTimeInput.value = '';
+            durationInput.value = '60';
+            updateCostPreview();
+            return;
+        }
+
+        const [date = '', startTime = '', duration = '60'] = scheduleSelect.value.split('|');
+        if (date) matchDateInput.value = date;
+        startTimeInput.value = startTime;
+        durationInput.value = duration || '60';
+        if (scheduleSelect.value) {
+            scheduleSelect.dataset.oldDate = '';
+            scheduleSelect.dataset.oldTime = '';
+            scheduleSelect.dataset.oldDuration = '';
+        }
+        updateCostPreview();
+    };
+
+    const renderScheduleOptions = (term) => {
+        const q = term.trim().toLowerCase();
+        const visibleSlots = scheduleSlots.filter((slot) => slot.search.includes(q));
+        scheduleOptionsList.innerHTML = '';
+
+        visibleSlots.forEach((slot) => {
+            const value = `${slot.date}|${slot.value}|${slot.duration}`;
+            const item = document.createElement('li');
+            item.className = 'flex items-center gap-1';
+            item.innerHTML = `
+                <button type="button" role="option" data-value="${value}" data-label="${slot.label}" aria-selected="${scheduleSelect.value === value ? 'true' : 'false'}"
+                    class="schedule-option flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-[#F1F8E9] aria-selected:bg-[#E8F5E9] aria-selected:ring-1 aria-selected:ring-[#4CAF50]/40">
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate font-bold text-[#0B5D1E]">${slot.timeLabel}</span>
+                            <span class="block truncate text-xs font-semibold text-[#4B8B43]">${slot.dateLabel}</span>
+                        </span>
+                    <span class="shrink-0 whitespace-nowrap rounded-lg bg-[#F1F8E9] px-2 py-1 text-xs font-black text-[#2E7D32]">${slot.duration} menit</span>
+                </button>
+            `;
+            scheduleOptionsList.appendChild(item);
+        });
+
+        scheduleEmpty.classList.toggle('hidden', visibleSlots.length > 0);
+    };
+
+    const selectScheduleSlot = (value) => {
+        const slot = scheduleSlots.find((item) => `${item.date}|${item.value}|${item.duration}` === value);
+        if (!slot) return;
+
+        scheduleSelect.value = value;
+        scheduleLabel.textContent = slot.label;
+        scheduleLabel.classList.remove('text-[#7BA877]');
+        scheduleLabel.classList.add('text-[#0B5D1E]', 'font-semibold');
+        syncSelectedSchedule();
+        renderScheduleOptions(scheduleSearch.value);
+    };
+
+    const openSchedulePanel = () => {
+        if (scheduleTrigger.disabled) return;
+        schedulePanel.classList.remove('hidden');
+        scheduleTrigger.setAttribute('aria-expanded', 'true');
+        scheduleSearch.value = '';
+        renderScheduleOptions('');
+        setTimeout(() => scheduleSearch.focus(), 0);
+    };
+
+    const closeSchedulePanel = () => {
+        schedulePanel.classList.add('hidden');
+        scheduleTrigger.setAttribute('aria-expanded', 'false');
     };
 
     // Field selection: combobox list + map modal
@@ -270,6 +511,7 @@
             label.classList.remove('text-[#7BA877]');
             label.classList.add('text-[#0B5D1E]', 'font-semibold');
             updateCostPreview();
+            updateScheduleOptions();
         };
 
         // ── Combobox dropdown (text search) ──
@@ -413,7 +655,81 @@
         if (fieldInput.value) selectByValue(fieldInput.value);
     })();
 
-    durationSelect.addEventListener('change', updateCostPreview);
+    scheduleTrigger.addEventListener('click', () => {
+        schedulePanel.classList.contains('hidden') ? openSchedulePanel() : closeSchedulePanel();
+    });
+    scheduleSearch.addEventListener('input', (e) => renderScheduleOptions(e.target.value));
+    scheduleOptionsList.addEventListener('click', (e) => {
+        const option = e.target.closest('.schedule-option');
+        if (!option) return;
+        selectScheduleSlot(option.dataset.value);
+        closeSchedulePanel();
+    });
+    document.addEventListener('click', (e) => {
+        if (!scheduleCombo.contains(e.target)) closeSchedulePanel();
+    });
+    matchDateInput.addEventListener('change', updateScheduleOptions);
+    paymentRequiredClose?.addEventListener('click', () => {
+        paymentRequiredModal?.classList.add('hidden');
+    });
+    paymentRequiredPay?.addEventListener('click', () => {
+        paymentRequiredModal?.classList.add('hidden');
+        document.getElementById('payment-dp-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    paymentRequiredModal?.addEventListener('click', (e) => {
+        if (e.target === paymentRequiredModal) paymentRequiredModal.classList.add('hidden');
+    });
+    createMidtransPay?.addEventListener('click', async () => {
+        if (!window.snap) {
+            alert('Midtrans Snap belum siap. Pastikan MIDTRANS_CLIENT_KEY sudah diisi di .env.');
+            return;
+        }
+
+        createMidtransPay.disabled = true;
+        createMidtransPay.textContent = 'Membuka Midtrans...';
+
+        try {
+            const response = await fetch('{{ route('matches.midtrans_token') }}', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({}),
+            });
+            const payload = await response.json();
+
+            if (!response.ok) {
+                throw new Error(payload.message || 'Gagal membuat transaksi Midtrans.');
+            }
+
+            window.snap.pay(payload.token, {
+                onSuccess(result) {
+                    document.getElementById('create_midtrans_order_id').value = payload.order_id;
+                    document.getElementById('create_midtrans_transaction_status').value = result.transaction_status || 'settlement';
+                    document.getElementById('create_midtrans_payment_type').value = result.payment_type || 'midtrans';
+                    document.getElementById('create_midtrans_transaction_id').value = result.transaction_id || '';
+                    createMidtransForm.submit();
+                },
+                onPending() {
+                    alert('Pembayaran belum selesai. Pertandingan belum dicatat sampai pembayaran berhasil.');
+                },
+                onError() {
+                    alert('Pembayaran gagal. Silakan coba lagi.');
+                },
+                onClose() {
+                    alert('Popup pembayaran ditutup. Pertandingan belum dicatat.');
+                },
+            });
+        } catch (error) {
+            alert(error.message || 'Gagal membuka Midtrans.');
+        } finally {
+            createMidtransPay.disabled = false;
+            createMidtransPay.textContent = 'Bayar DP via Midtrans';
+        }
+    });
     updateCostPreview();
+    updateScheduleOptions();
 </script>
 @endsection

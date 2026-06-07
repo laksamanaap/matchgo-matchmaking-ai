@@ -35,10 +35,10 @@
                             $opponent = $match->team_a_id === $team->id ? $match->teamB : $match->teamA;
                             $payment = $booking?->payments?->firstWhere('team_id', $team->id);
                             $isAutoMatch = $match->isAutoMatch();
-                            $basePayment = $isAutoMatch
-                                ? ($cost?->cost_per_team ?? 0)
-                                : ($cost?->dp_per_team ?? (int) ceil(($cost?->cost_per_team ?? 0) * 0.5));
-                            $fee = $cost?->handling_fee ?? (int) ceil(($cost?->total_cost ?? 0) * 0.1);
+                        $basePayment = $isAutoMatch
+                            ? ($cost?->cost_per_team ?? 0)
+                            : ($cost?->dp_per_team ?? ($cost?->cost_per_team ?? 0));
+                            $fee = $cost?->handling_fee ?? (int) ceil($basePayment * 0.1);
                             $amount = $basePayment + $fee;
                         @endphp
 
