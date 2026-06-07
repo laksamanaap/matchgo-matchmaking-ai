@@ -6,7 +6,35 @@
 
 .fi-panel-admin {
     --font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
-    color: #12351f;
+    --matchgo-bg: #f1f8e9;
+    --matchgo-surface: #ffffff;
+    --matchgo-surface-soft: #f8fcf4;
+    --matchgo-surface-muted: #e4f2de;
+    --matchgo-border: #ddeed8;
+    --matchgo-border-strong: #c8e6c9;
+    --matchgo-text: #0b5d1e;
+    --matchgo-text-soft: #4b8b43;
+    --matchgo-primary: #2e8b3c;
+    --matchgo-primary-hover: #23742f;
+    --matchgo-accent: #43a047;
+    --matchgo-shadow: rgba(27, 94, 32, 0.1);
+    background: var(--matchgo-bg);
+    color: var(--matchgo-text);
+}
+
+.fi-panel-admin,
+.fi-panel-admin .fi-layout,
+.fi-panel-admin .fi-main,
+.fi-panel-admin .fi-main-ctn {
+    background: var(--matchgo-bg);
+    color: var(--matchgo-text);
+}
+
+.fi-panel-admin .fi-layout {
+    background-image:
+        linear-gradient(rgba(76, 175, 80, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(76, 175, 80, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
 }
 
 .fi-panel-admin .fi-simple-layout {
@@ -14,7 +42,7 @@
     background:
         radial-gradient(circle at 22% 18%, rgba(76, 175, 80, 0.16), transparent 26rem),
         radial-gradient(circle at 82% 78%, rgba(111, 148, 93, 0.14), transparent 24rem),
-        #f1f8e9;
+        var(--matchgo-bg);
 }
 
 .fi-panel-admin .fi-simple-main-ctn {
@@ -54,7 +82,7 @@
     width: max-content;
     margin: 0 auto -0.1rem;
     border-radius: 999px;
-    background: #f1f8e9;
+    background: var(--matchgo-bg);
     padding: 0.45rem 0.8rem;
     color: #2e7d32;
     content: "Panel Admin";
@@ -67,7 +95,7 @@
 .fi-panel-admin .fi-simple-page-content::after {
     display: block;
     margin-top: 0.15rem;
-    color: #4b7f45;
+    color: var(--matchgo-text-soft);
     content: "Login khusus untuk mengakses panel admin MatchGo.";
     font-size: 0.84rem;
     font-weight: 800;
@@ -82,20 +110,131 @@
     object-fit: contain;
 }
 
+.fi-panel-admin .fi-sidebar {
+    border-right: 1px solid var(--matchgo-border);
+    background: var(--matchgo-surface);
+    box-shadow: 14px 0 35px var(--matchgo-shadow);
+}
+
 .fi-panel-admin .fi-sidebar-header {
     min-height: 4.25rem;
+    border-bottom: 1px solid var(--matchgo-border);
+    background: var(--matchgo-surface);
+}
+
+.fi-panel-admin .fi-topbar {
+    border-bottom: 1px solid var(--matchgo-border);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 30px var(--matchgo-shadow);
+    backdrop-filter: blur(16px);
+}
+
+.fi-panel-admin .fi-sidebar-group-label,
+.fi-panel-admin .fi-sidebar-item-label,
+.fi-panel-admin .fi-sidebar-item-icon,
+.fi-panel-admin .fi-topbar .fi-icon-btn,
+.fi-panel-admin .fi-breadcrumbs-item-label {
+    color: var(--matchgo-text-soft);
+}
+
+.fi-panel-admin .fi-sidebar-group-label {
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.fi-panel-admin .fi-sidebar-item-button {
+    border-radius: 16px;
+}
+
+.fi-panel-admin .fi-sidebar-item-button:hover {
+    background: var(--matchgo-bg);
+}
+
+.fi-panel-admin .fi-sidebar-item.fi-active .fi-sidebar-item-button,
+.fi-panel-admin .fi-sidebar-item-button[aria-current="page"] {
+    background: var(--matchgo-bg);
+    box-shadow: inset 0 0 0 1px var(--matchgo-border-strong);
+}
+
+.fi-panel-admin .fi-sidebar-item.fi-active .fi-sidebar-item-label,
+.fi-panel-admin .fi-sidebar-item.fi-active .fi-sidebar-item-icon,
+.fi-panel-admin .fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-label,
+.fi-panel-admin .fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
+    color: var(--matchgo-primary);
+    font-weight: 900;
+}
+
+.fi-panel-admin .fi-header-heading,
+.fi-panel-admin .fi-section-header-heading,
+.fi-panel-admin .fi-ta-header-heading,
+.fi-panel-admin .fi-modal-heading {
+    color: var(--matchgo-text);
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.fi-panel-admin .fi-header-subheading,
+.fi-panel-admin .fi-section-header-description,
+.fi-panel-admin .fi-ta-header-description,
+.fi-panel-admin .fi-modal-description {
+    color: var(--matchgo-text-soft);
+    font-weight: 700;
 }
 
 .fi-panel-admin .fi-simple-header-heading {
-    color: #0b5d1e;
+    color: var(--matchgo-text);
     font-size: 2rem;
     font-weight: 900;
     letter-spacing: 0;
 }
 
 .fi-panel-admin .fi-simple-header-subheading {
-    color: #4b7f45;
+    color: var(--matchgo-text-soft);
     font-weight: 700;
+}
+
+.fi-panel-admin .fi-section,
+.fi-panel-admin .fi-ta,
+.fi-panel-admin .fi-wi-stats-overview-stat,
+.fi-panel-admin .fi-modal-window {
+    border: 1px solid var(--matchgo-border);
+    border-radius: 24px;
+    background: var(--matchgo-surface);
+    box-shadow: 0 18px 45px var(--matchgo-shadow);
+}
+
+.fi-panel-admin .fi-section-header,
+.fi-panel-admin .fi-ta-header,
+.fi-panel-admin .fi-modal-header {
+    border-color: var(--matchgo-border);
+}
+
+.fi-panel-admin .fi-ta-content,
+.fi-panel-admin .fi-ta-table {
+    background: var(--matchgo-surface);
+}
+
+.fi-panel-admin .fi-ta-header-cell,
+.fi-panel-admin .fi-ta-cell {
+    border-color: var(--matchgo-border);
+}
+
+.fi-panel-admin .fi-ta-header-cell-label,
+.fi-panel-admin .fi-ta-text,
+.fi-panel-admin .fi-wi-stats-overview-stat-value {
+    color: var(--matchgo-text);
+}
+
+.fi-panel-admin .fi-ta-placeholder,
+.fi-panel-admin .fi-ta-text-description,
+.fi-panel-admin .fi-wi-stats-overview-stat-description {
+    color: var(--matchgo-text-soft);
+}
+
+.fi-panel-admin .fi-ta-row:hover {
+    background: var(--matchgo-surface-soft);
 }
 
 .fi-panel-admin .fi-fo-field-label {
@@ -103,21 +242,28 @@
     font-weight: 800;
 }
 
-.fi-panel-admin .fi-input-wrp {
-    border: 1px solid #c8e6c9;
+.fi-panel-admin .fi-input-wrp,
+.fi-panel-admin .fi-select-input,
+.fi-panel-admin .fi-fo-date-time-picker-panel,
+.fi-panel-admin .fi-dropdown-panel {
+    border: 1px solid var(--matchgo-border-strong);
     border-radius: 14px;
-    background: #f8fcf4;
+    background: var(--matchgo-surface-soft);
     box-shadow: none;
 }
 
-.fi-panel-admin .fi-input {
+.fi-panel-admin .fi-input,
+.fi-panel-admin .fi-select-input,
+.fi-panel-admin .fi-textarea {
     min-height: 3rem;
-    color: #12351f;
+    color: var(--matchgo-text);
     font-weight: 700;
 }
 
-.fi-panel-admin .fi-input-wrp:focus-within {
-    border-color: #2e8b3c;
+.fi-panel-admin .fi-input-wrp:focus-within,
+.fi-panel-admin .fi-select-input:focus-within,
+.fi-panel-admin .fi-textarea:focus {
+    border-color: var(--matchgo-primary);
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.16);
 }
 
@@ -132,12 +278,41 @@
 }
 
 .fi-panel-admin .fi-btn.fi-color-primary {
-    background: #2e8b3c;
+    background: var(--matchgo-primary);
     box-shadow: 0 10px 22px rgba(27, 94, 32, 0.16);
 }
 
 .fi-panel-admin .fi-btn.fi-color-primary:hover {
-    background: #23742f;
+    background: var(--matchgo-primary-hover);
+}
+
+.fi-panel-admin .fi-btn.fi-color-gray {
+    border-color: var(--matchgo-border-strong);
+    background: var(--matchgo-surface-soft);
+    color: #2e7d32;
+}
+
+.fi-panel-admin .fi-badge {
+    border-radius: 999px;
+    font-weight: 900;
+}
+
+.fi-panel-admin .fi-tabs {
+    border-color: var(--matchgo-border);
+}
+
+.fi-panel-admin .fi-tabs-item {
+    color: var(--matchgo-text-soft);
+    font-weight: 800;
+}
+
+.fi-panel-admin .fi-tabs-item.fi-active {
+    color: var(--matchgo-primary);
+}
+
+.fi-panel-admin ::selection {
+    background: #c8e6c9;
+    color: var(--matchgo-text);
 }
 
 @media (min-width: 640px) {
