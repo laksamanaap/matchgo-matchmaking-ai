@@ -86,6 +86,31 @@
             default => 'bg-lime-100 text-[#2E7D32] ring-lime-200',
         };
 
+    $hasScore = ! is_null($match->score_a) && ! is_null($match->score_b);
+    $resultLabel = null;
+    $scoreLine = null;
+    $matchFinishedCaption = 'Menunggu';
+    if ($effectiveStatus === 'completed') {
+        if ($hasScore) {
+            $scoreLine = ($teamA?->name ?? 'Tim A') . " ({$match->score_a}) vs " . ($teamB?->name ?? 'Tim B') . " ({$match->score_b})";
+            $matchFinishedCaption = $scoreLine;
+            if ($isMatchParticipant) {
+                $myScore = $isCurrentTeamB ? $match->score_b : $match->score_a;
+                $oppScore = $isCurrentTeamB ? $match->score_a : $match->score_b;
+                $resultLabel = $myScore > $oppScore ? 'Menang' : ($myScore < $oppScore ? 'Kalah' : 'Seri');
+            }
+        } else {
+            $matchFinishedCaption = 'Selesai, menunggu input skor admin';
+        }
+    }
+
+    $resultBadgeClass = match ($resultLabel) {
+        'Menang' => 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
+        'Kalah'  => 'bg-red-100 text-red-700 ring-1 ring-red-200',
+        'Seri'   => 'bg-sky-100 text-sky-700 ring-1 ring-sky-200',
+        default  => '',
+    };
+
     $steps = [
         [
             'title' => 'Tantangan Dikirim',
@@ -107,7 +132,7 @@
         ],
         [
             'title' => 'Match Selesai',
-            'caption' => $effectiveStatus === 'completed' ? 'Selesai' : 'Menunggu',
+            'caption' => $matchFinishedCaption,
             'active' => $effectiveStatus === 'completed',
             'icon' => 'trophy',
         ],
@@ -274,8 +299,15 @@
                                     <x-heroicon-o-shield-check class="h-5 w-5" />
                                 @endif
                             </div>
-                            <div>
-                                <p class="font-black {{ $step['active'] ? 'text-[#1f241d]' : 'text-[#777f70]' }}">{{ $step['title'] }}</p>
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="font-black {{ $step['active'] ? 'text-[#1f241d]' : 'text-[#777f70]' }}">{{ $step['title'] }}</p>
+                                    @if($step['icon'] === 'trophy' && $resultLabel)
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wide {{ $resultBadgeClass }}">
+                                            {{ $resultLabel }}
+                                        </span>
+                                    @endif
+                                </div>
                                 <p class="mt-1 text-sm leading-5 text-[#777f70]">{{ $step['caption'] }}</p>
                             </div>
                         </div>

@@ -12,11 +12,15 @@
             </a>
 
             {{-- Galeri (1 besar + 4 kecil = 5 slot, placeholder kalau kosong) --}}
-            @php $gallery = $field->gallery_urls; @endphp
+            @php
+                $gallery = $field->gallery_urls;
+                $placeholder = asset('placeholder-image.png');
+            @endphp
             <div class="grid h-80 grid-cols-2 gap-2 sm:h-[26rem] sm:grid-cols-4 sm:grid-rows-2">
-                <div class="relative col-span-2 row-span-2 overflow-hidden rounded-3xl bg-[#E8F0E4]">
-                    <img src="{{ $gallery[0] }}" alt="{{ $field->name }}" data-index="0" class="gallery-img h-full w-full cursor-zoom-in object-cover"
-                        onerror="this.onerror=null;this.src='{{ asset('placeholder-image.png') }}';" />
+                <a @if($gallery[0] !== $placeholder) data-fslightbox="venue-gallery" href="{{ $gallery[0] }}" @endif
+                    class="relative col-span-2 row-span-2 block overflow-hidden rounded-3xl bg-[#E8F0E4] {{ $gallery[0] !== $placeholder ? 'cursor-zoom-in' : '' }}">
+                    <img src="{{ $gallery[0] }}" alt="{{ $field->name }}" class="h-full w-full object-cover"
+                        onerror="this.onerror=null;this.src='{{ $placeholder }}';" />
                     <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-6">
                         <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide text-white {{ $field->is_available ? 'bg-[#2E8B3C]' : 'bg-gray-500' }}">
                             <span class="h-1.5 w-1.5 rounded-full bg-white"></span>
@@ -28,13 +32,14 @@
                             {{ $field->city }}
                         </p>
                     </div>
-                </div>
+                </a>
 
                 @for($i = 1; $i < 5; $i++)
-                    <div class="hidden overflow-hidden rounded-2xl bg-[#E8F0E4] sm:block">
-                        <img src="{{ $gallery[$i] }}" alt="{{ $field->name }} {{ $i + 1 }}" data-index="{{ $i }}" class="gallery-img h-full w-full cursor-zoom-in object-cover transition duration-300 hover:scale-105"
-                            onerror="this.onerror=null;this.src='{{ asset('placeholder-image.png') }}';" />
-                    </div>
+                    <a @if($gallery[$i] !== $placeholder) data-fslightbox="venue-gallery" href="{{ $gallery[$i] }}" @endif
+                        class="hidden overflow-hidden rounded-2xl bg-[#E8F0E4] sm:block {{ $gallery[$i] !== $placeholder ? 'cursor-zoom-in' : '' }}">
+                        <img src="{{ $gallery[$i] }}" alt="{{ $field->name }} {{ $i + 1 }}" class="h-full w-full object-cover transition duration-300 hover:scale-105"
+                            onerror="this.onerror=null;this.src='{{ $placeholder }}';" />
+                    </a>
                 @endfor
             </div>
 
@@ -149,55 +154,12 @@
     </script>
 @endif
 
-{{-- Lightbox galeri --}}
-<div id="lightbox" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/90 p-4">
-    <button type="button" id="lightbox-close" class="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20" aria-label="Tutup">
-        <x-heroicon-o-x-mark class="h-6 w-6" />
-    </button>
-    <button type="button" id="lightbox-prev" class="absolute left-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:left-6" aria-label="Sebelumnya">
-        <x-heroicon-o-chevron-left class="h-7 w-7" />
-    </button>
-    <img id="lightbox-img" src="" alt="" class="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl" />
-    <button type="button" id="lightbox-next" class="absolute right-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-6" aria-label="Berikutnya">
-        <x-heroicon-o-chevron-right class="h-7 w-7" />
-    </button>
-    <span id="lightbox-counter" class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-sm font-bold text-white"></span>
-</div>
-
+{{-- Lightbox galeri: fslightbox --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fslightbox/3.4.1/index.js"></script>
 <script>
-    (function () {
-        const images = Array.from(document.querySelectorAll('.gallery-img')).map((el) => el.src);
-        if (!images.length) return;
-
-        const box = document.getElementById('lightbox');
-        const imgEl = document.getElementById('lightbox-img');
-        const counter = document.getElementById('lightbox-counter');
-        const placeholder = @json(asset('placeholder-image.png'));
-        let current = 0;
-
-        const render = () => {
-            imgEl.src = images[current];
-            imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = placeholder; };
-            counter.textContent = `${current + 1} / ${images.length}`;
-        };
-        const open = (i) => { current = i; render(); box.classList.remove('hidden'); box.classList.add('flex'); };
-        const close = () => { box.classList.add('hidden'); box.classList.remove('flex'); };
-        const next = () => { current = (current + 1) % images.length; render(); };
-        const prev = () => { current = (current - 1 + images.length) % images.length; render(); };
-
-        document.querySelectorAll('.gallery-img').forEach((el) => {
-            el.addEventListener('click', () => open(Number(el.dataset.index || 0)));
-        });
-        document.getElementById('lightbox-close').addEventListener('click', close);
-        document.getElementById('lightbox-next').addEventListener('click', (e) => { e.stopPropagation(); next(); });
-        document.getElementById('lightbox-prev').addEventListener('click', (e) => { e.stopPropagation(); prev(); });
-        box.addEventListener('click', (e) => { if (e.target === box) close(); });
-        document.addEventListener('keydown', (e) => {
-            if (box.classList.contains('hidden')) return;
-            if (e.key === 'Escape') close();
-            else if (e.key === 'ArrowRight') next();
-            else if (e.key === 'ArrowLeft') prev();
-        });
-    })();
+    // Re-init kalau halaman dimuat via SPA/Livewire navigation.
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof refreshFsLightbox === 'function') refreshFsLightbox();
+    });
 </script>
 @endsection
