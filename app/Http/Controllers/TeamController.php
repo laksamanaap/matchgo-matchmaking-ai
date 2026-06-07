@@ -16,7 +16,7 @@ class TeamController extends Controller
 
         if ($userTeam) {
             return view('teams.show', [
-                'team' => $userTeam->load(['owner', 'players', 'sentMatchRequests', 'receivedMatchRequests']),
+                'team' => $userTeam->load(['owner', 'players', 'teamStats', 'sentMatchRequests', 'receivedMatchRequests']),
             ]);
         }
 
