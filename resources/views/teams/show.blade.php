@@ -80,6 +80,121 @@
                 </div>
             </div>
 
+            {{-- Statistik Tim --}}
+            @php
+                $stats = $team->teamStats;
+                $played = $stats->total_matches ?? 0;
+                $wins = $stats->wins ?? 0;
+                $draws = $stats->draws ?? 0;
+                $losses = $stats->losses ?? 0;
+                $goalsScored = $stats->goals_scored ?? 0;
+                $goalsConceded = $stats->goals_conceded ?? 0;
+                $goalDiff = $goalsScored - $goalsConceded;
+                $winRate = $played > 0 ? round(($wins / $played) * 100) : 0;
+                $winPct = $played > 0 ? ($wins / $played) * 100 : 0;
+                $drawPct = $played > 0 ? ($draws / $played) * 100 : 0;
+                $lossPct = $played > 0 ? ($losses / $played) * 100 : 0;
+                $circumference = 2 * pi() * 52;
+                $ringOffset = $circumference * (1 - $winRate / 100);
+            @endphp
+            <div class="overflow-hidden rounded-3xl bg-white shadow-lg">
+                {{-- Header gradient --}}
+                <div class="flex items-center justify-between gap-4 bg-gradient-to-r from-[#1B5E20] to-[#43A047] px-8 py-5">
+                    <div class="flex items-center gap-3">
+                        <span class="grid h-11 w-11 place-items-center rounded-2xl bg-white/15 text-white ring-1 ring-white/25">
+                            <x-heroicon-o-chart-bar class="h-6 w-6" />
+                        </span>
+                        <div>
+                            <h2 class="text-xl font-black text-white">Statistik Tim</h2>
+                            <p class="text-xs font-semibold text-white/80">{{ $played }} pertandingan dimainkan</p>
+                        </div>
+                    </div>
+                    <span class="hidden rounded-full bg-white/15 px-4 py-1.5 text-sm font-black text-white ring-1 ring-white/25 sm:block">
+                        {{ $goalDiff > 0 ? '+' : '' }}{{ $goalDiff }} Selisih Gol
+                    </span>
+                </div>
+
+                <div class="grid gap-8 p-8 lg:grid-cols-[auto_1fr] lg:items-center">
+                    {{-- Win rate ring --}}
+                    <div class="mx-auto flex flex-col items-center">
+                        <div class="relative h-40 w-40">
+                            <svg class="h-full w-full -rotate-90" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="52" fill="none" stroke="#EAF2E5" stroke-width="12" />
+                                <circle cx="60" cy="60" r="52" fill="none" stroke="url(#wr)" stroke-width="12" stroke-linecap="round"
+                                    stroke-dasharray="{{ $circumference }}" stroke-dashoffset="{{ $ringOffset }}" />
+                                <defs>
+                                    <linearGradient id="wr" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#2E7D32" />
+                                        <stop offset="100%" stop-color="#7BD389" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-4xl font-black text-[#1B5E20]">{{ $winRate }}%</span>
+                                <span class="text-xs font-bold uppercase tracking-wide text-[#4B8B43]">Win Rate</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Right side --}}
+                    <div class="grid gap-5">
+                        {{-- W/D/L distribusi bar --}}
+                        <div>
+                            <div class="flex h-3 w-full overflow-hidden rounded-full bg-[#EAF2E5]">
+                                <div class="bg-emerald-500" style="width: {{ $winPct }}%"></div>
+                                <div class="bg-sky-400" style="width: {{ $drawPct }}%"></div>
+                                <div class="bg-red-400" style="width: {{ $lossPct }}%"></div>
+                            </div>
+                            <div class="mt-3 grid grid-cols-3 gap-3">
+                                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+                                    <p class="text-2xl font-black text-emerald-700">{{ $wins }}</p>
+                                    <p class="text-[11px] font-bold uppercase tracking-wide text-emerald-600">Menang</p>
+                                </div>
+                                <div class="rounded-2xl border border-sky-200 bg-sky-50 p-3 text-center">
+                                    <p class="text-2xl font-black text-sky-700">{{ $draws }}</p>
+                                    <p class="text-[11px] font-bold uppercase tracking-wide text-sky-600">Seri</p>
+                                </div>
+                                <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-center">
+                                    <p class="text-2xl font-black text-red-700">{{ $losses }}</p>
+                                    <p class="text-[11px] font-bold uppercase tracking-wide text-red-600">Kalah</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Goals --}}
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="flex items-center gap-3 rounded-2xl bg-[#F8FCF4] p-4 ring-1 ring-[#DDEED8]">
+                                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#E8F5E9] text-[#2E7D32]">
+                                    <x-heroicon-o-arrow-trending-up class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <p class="text-lg font-black leading-none text-[#1B5E20]">{{ $goalsScored }}</p>
+                                    <p class="mt-1 text-[11px] font-bold uppercase tracking-wide text-[#4B8B43]">Gol</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 rounded-2xl bg-[#F8FCF4] p-4 ring-1 ring-[#DDEED8]">
+                                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-red-50 text-red-500">
+                                    <x-heroicon-o-arrow-trending-down class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <p class="text-lg font-black leading-none text-[#1B5E20]">{{ $goalsConceded }}</p>
+                                    <p class="mt-1 text-[11px] font-bold uppercase tracking-wide text-[#4B8B43]">Kebobolan</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 rounded-2xl bg-[#F8FCF4] p-4 ring-1 ring-[#DDEED8]">
+                                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#E8F5E9] text-[#2E7D32]">
+                                    <x-heroicon-o-trophy class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <p class="text-lg font-black leading-none {{ $goalDiff > 0 ? 'text-emerald-700' : ($goalDiff < 0 ? 'text-red-600' : 'text-[#1B5E20]') }}">{{ $goalDiff > 0 ? '+' : '' }}{{ $goalDiff }}</p>
+                                    <p class="mt-1 text-[11px] font-bold uppercase tracking-wide text-[#4B8B43]">Selisih</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
                 <div class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl">
                     <div class="flex items-center justify-between mb-6">

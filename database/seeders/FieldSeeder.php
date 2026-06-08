@@ -3,32 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\Field;
-use App\Models\Venue;
 use Illuminate\Database\Seeder;
 
 class FieldSeeder extends Seeder
 {
     public function run(): void
     {
-        Venue::query()
-            ->where('is_active', true)
-            ->get()
-            ->each(function (Venue $venue) {
-                Field::updateOrCreate(
-                    ['name' => $venue->name],
-                    [
-                        'address' => $venue->address,
-                        'city' => $venue->city,
-                        'latitude' => $venue->latitude,
-                        'longitude' => $venue->longitude,
-                        'price_per_hour' => $venue->price_per_hour,
-                        'contact_phone' => $venue->contact_phone,
-                        'is_available' => true,
-                    ]
-                );
-            });
-
-        $malangFields = [
+        $fields = [
             [
                 'name' => 'Viva Futsal Malang',
                 'address' => 'Jl. Bunga Andong, Jatimulyo, Kec. Lowokwaru, Kota Malang, Jawa Timur 65141',
@@ -38,7 +19,7 @@ class FieldSeeder extends Seeder
                 'price_per_hour' => 120000,
                 'contact_phone' => '0341-484377',
                 'open_time' => '06:00:00',
-                'close_time' => '02:00:00',
+                'close_time' => '23:00:00',
             ],
             [
                 'name' => 'Angkasa Futsal Malang',
@@ -93,7 +74,7 @@ class FieldSeeder extends Seeder
                 'price_per_hour' => 130000,
                 'contact_phone' => '0341-477123',
                 'open_time' => '07:00:00',
-                'close_time' => '00:00:00',
+                'close_time' => '23:59:00',
             ],
             [
                 'name' => 'Galaxy Futsal Malang',
@@ -126,7 +107,7 @@ class FieldSeeder extends Seeder
                 'price_per_hour' => 120000,
                 'contact_phone' => '0341-551789',
                 'open_time' => '07:00:00',
-                'close_time' => '00:00:00',
+                'close_time' => '23:59:00',
             ],
             [
                 'name' => 'Araya Futsal Malang',
@@ -163,12 +144,10 @@ class FieldSeeder extends Seeder
             ],
         ];
 
-        foreach ($malangFields as $field) {
+        foreach ($fields as $field) {
             Field::updateOrCreate(
                 ['name' => $field['name']],
-                array_merge($field, [
-                    'is_available' => true,
-                ])
+                array_merge($field, ['is_available' => true]),
             );
         }
     }
