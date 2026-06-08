@@ -36,12 +36,12 @@
 
         <div class="grid gap-8">
             {{-- Team Header --}}
-            <section class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1F7A32] via-[#349E46] to-[#74B843] p-1 shadow-2xl shadow-[#1B5E20]/18">
+            <section class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1F7A32] via-[#349E46] to-[#74B843] p-1 shadow-2xl shadow-[#1B5E20]/20">
                 <div class="relative px-6 py-7 text-white sm:px-8 lg:px-10">
                     <div class="absolute inset-x-0 top-0 h-px bg-white/30"></div>
                     <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div class="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
-                            <div class="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-[1.7rem] border border-white/25 bg-white/15 shadow-xl shadow-[#0B3D1F]/12 ring-1 ring-white/15">
+                            <div class="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-[1.7rem] border border-white/25 bg-white/20 shadow-xl shadow-[#0B3D1F]/10 ring-1 ring-white/20">
                             @if($teamLogoExists)
                                 <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-full w-full object-contain p-2.5">
                             @else
@@ -52,23 +52,23 @@
                             </div>
                             <div class="min-w-0">
                                 <div class="mb-3 flex flex-wrap items-center gap-2">
-                                    <span class="rounded-full bg-white/18 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white ring-1 ring-white/20">
+                                    <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white ring-1 ring-white/20">
                                         Tim Futsal
                                     </span>
-                                    <span class="rounded-full px-3 py-1 text-xs font-black {{ $team->verification_status === 'verified' ? 'bg-white text-[#1B7A32]' : 'bg-white/18 text-white ring-1 ring-white/20' }}">
+                                    <span class="rounded-full px-3 py-1 text-xs font-black {{ $team->verification_status === 'verified' ? 'bg-white text-[#1B7A32]' : 'bg-white/20 text-white ring-1 ring-white/20' }}">
                                         {{ $statusLabel }}
                                     </span>
                                 </div>
                                 <h1 class="truncate text-4xl font-black tracking-normal text-white sm:text-5xl">{{ $team->name }}</h1>
                                 @if($team->description)
-                                    <p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-white/85">{{ $team->description }}</p>
+                                    <p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-white/90">{{ $team->description }}</p>
                                 @endif
                             </div>
                         </div>
 
                         @if($team->owner_id === Auth::id())
                             <div class="flex shrink-0 gap-3">
-                                <button type="button" data-open-team-edit class="inline-flex items-center gap-2 rounded-2xl bg-white/18 px-5 py-3 text-sm font-black text-white shadow-sm ring-1 ring-white/20 transition hover:bg-white/25">
+                                <button type="button" data-open-team-edit class="inline-flex items-center gap-2 rounded-2xl bg-white/20 px-5 py-3 text-sm font-black text-white shadow-sm ring-1 ring-white/20 transition hover:bg-white/30">
                                     <x-heroicon-o-pencil-square class="h-5 w-5" />
                                     Edit
                                 </button>
