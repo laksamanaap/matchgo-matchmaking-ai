@@ -63,13 +63,13 @@
 
     $statusLabel = $statusLabels[$effectiveStatus] ?? ucfirst($effectiveStatus);
     $paymentStepCaption = ! $creatorDpPaid
-        ? ($match->isAutoMatch() ? 'Menunggu pelunasan' : 'Menunggu DP')
+        ? 'Menunggu pembayaran'
         : (
             $opponentNeedsPayment
                 ? $opponentPaymentCaption
                 : ($teamB
-                    ? ($match->isAutoMatch() ? 'Pembayaran kedua tim sudah lunas' : 'DP kedua tim sudah dibayar')
-                    : ($match->isAutoMatch() ? 'Pembayaran sudah lunas' : 'DP sudah dibayar'))
+                    ? 'Pembayaran kedua tim sudah lunas'
+                    : 'Pembayaran sudah lunas')
         );
     $matchScheduleActive = $creatorDpPaid
         && (
@@ -101,7 +101,7 @@
         ],
         [
             'title' => 'Match Dijadwalkan',
-            'caption' => $creatorDpPaid ? ($opponentNeedsPayment ? $schedulePendingCaption : ($teamB ? 'Status: ' . $statusLabel : 'Menunggu lawan')) : ($match->isAutoMatch() ? 'Menunggu pelunasan' : 'Menunggu pembayaran DP'),
+            'caption' => $creatorDpPaid ? ($opponentNeedsPayment ? $schedulePendingCaption : ($teamB ? 'Status: ' . $statusLabel : 'Menunggu lawan')) : 'Menunggu pembayaran',
             'active' => $matchScheduleActive,
             'icon' => 'calendar',
         ],
@@ -347,7 +347,7 @@
                             <span class="text-right text-lg font-black text-[#0B5D1E]">Rp {{ number_format($cost->cost_per_team, 0, ',', '.') }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-5 py-4">
-                            <span class="font-semibold text-[#6F945D]">{{ $match->isAutoMatch() ? 'Pelunasan Tiap Tim' : 'DP 50% Harga Lapangan' }}</span>
+                            <span class="font-semibold text-[#6F945D]">Biaya Per Tim</span>
                             <span class="text-right text-lg font-black text-[#0B5D1E]">
                                 Rp {{ number_format($match->isAutoMatch() ? $cost->cost_per_team : ($cost->dp_per_team ?? $cost->cost_per_team), 0, ',', '.') }}
                             </span>
@@ -459,13 +459,13 @@
                     matchMidtransForm.submit();
                 },
                 onPending() {
-                    alert('Pembayaran belum selesai. DP belum dicatat sampai pembayaran berhasil.');
+                    alert('Pembayaran belum selesai. Pembayaran belum dicatat sampai berhasil.');
                 },
                 onError() {
                     alert('Pembayaran gagal. Silakan coba lagi.');
                 },
                 onClose() {
-                    alert('Popup pembayaran ditutup. DP belum dicatat.');
+                    alert('Popup pembayaran ditutup. Pembayaran belum dicatat.');
                 },
             });
         } catch (error) {

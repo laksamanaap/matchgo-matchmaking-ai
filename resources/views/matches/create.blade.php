@@ -23,9 +23,9 @@
                         <div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-amber-100 text-amber-700 ring-1 ring-amber-200">
                             <x-heroicon-o-exclamation-triangle class="h-9 w-9" />
                         </div>
-                        <h2 class="mt-5 text-2xl font-black text-amber-800">Bayar DP terlebih dahulu</h2>
+                        <h2 class="mt-5 text-2xl font-black text-amber-800">Bayar biaya pertandingan terlebih dahulu</h2>
                         <p class="mt-3 text-sm font-semibold leading-6 text-amber-700">
-                                {{ session('payment_required') ?? 'Pertandingan belum dicatat dan lapangan belum terbooking. Bayar DP 50% + biaya web 10% dari DP untuk membuat pertandingan.' }}
+                                {{ session('payment_required') ?? 'Pertandingan belum dicatat dan lapangan belum terbooking. Bayar biaya per tim + biaya web 10% dari biaya per tim untuk membuat pertandingan.' }}
                         </p>
                         <div class="mt-6 grid gap-3 sm:grid-cols-2">
                             <button type="button" id="payment-required-close" class="rounded-2xl border border-amber-200 bg-white px-5 py-3 text-sm font-black text-amber-700 transition hover:bg-amber-50">
@@ -183,7 +183,7 @@
                 <aside class="grid gap-6">
                     @if($pendingPayment)
                         <div id="payment-dp-panel" class="rounded-3xl border border-[#C8E6C9] bg-white p-6 shadow-xl shadow-[#1B5E20]/10">
-                            <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#4B8B43]">Pembayaran DP</p>
+                            <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#4B8B43]">Pembayaran</p>
                             <div class="mt-4 rounded-2xl bg-[#F1F8E9] p-4">
                                 <p class="text-sm font-black text-[#0B5D1E]">{{ $pendingPayment['field']->name }}</p>
                                 <p class="mt-1 text-sm font-semibold text-[#4B8B43]">
@@ -199,11 +199,11 @@
                                     <span class="font-black text-[#0B5D1E]">Rp {{ number_format($pendingPayment['total_cost'], 0, ',', '.') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between gap-4 py-3">
-                                    <span class="font-semibold text-[#4B8B43]">DP 50% dari Total Harga</span>
+                                    <span class="font-semibold text-[#4B8B43]">Biaya Per Tim</span>
                                     <span class="font-black text-[#0B5D1E]">Rp {{ number_format($pendingPayment['dp_per_team'], 0, ',', '.') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between gap-4 py-3">
-                                    <span class="font-semibold text-[#4B8B43]">Biaya Web 10% dari DP</span>
+                                    <span class="font-semibold text-[#4B8B43]">Biaya Web 10% dari Biaya Per Tim</span>
                                     <span class="font-black text-[#0B5D1E]">Rp {{ number_format($pendingPayment['handling_fee'], 0, ',', '.') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between gap-4 py-3">
@@ -219,10 +219,10 @@
                                 <input type="hidden" name="midtrans_payment_type" id="create_midtrans_payment_type">
                                 <input type="hidden" name="midtrans_transaction_id" id="create_midtrans_transaction_id">
                                 <button type="button" id="create-midtrans-pay" class="w-full rounded-2xl bg-[#2E8B3C] px-5 py-3 text-sm font-black text-white transition hover:bg-[#23742F] disabled:cursor-not-allowed disabled:bg-[#9CC298]">
-                                    Bayar DP via Midtrans
+                                    Bayar via Midtrans
                                 </button>
                             </form>
-                            <p class="mt-3 text-xs font-semibold leading-5 text-[#4B8B43]">Pertandingan dan booking lapangan baru dicatat setelah DP berhasil dibayar.</p>
+                            <p class="mt-3 text-xs font-semibold leading-5 text-[#4B8B43]">Pertandingan dan booking lapangan baru dicatat setelah pembayaran berhasil.</p>
                         </div>
                     @endif
 
@@ -240,14 +240,14 @@
                             <div class="rounded-2xl bg-[#F1F8E9] p-4">
                                 <p class="text-xs font-semibold text-[#4B8B43]">Wajib Dibayar Sekarang</p>
                                 <p id="pay_now" class="mt-1 text-3xl font-black text-[#0B5D1E]">Rp 0</p>
-                                <p class="mt-1 text-xs font-semibold text-[#4B8B43]">DP 50% + biaya pengelola web 10% dari DP</p>
+                                <p class="mt-1 text-xs font-semibold text-[#4B8B43]">Biaya per tim + biaya pengelola web 10% dari biaya per tim</p>
                                 <div class="mt-3 space-y-1 border-t border-[#C8E6C9] pt-3 text-xs font-semibold text-[#4B8B43]">
                                     <div class="flex items-center justify-between gap-3">
-                                        <span>DP 50% dari total harga</span>
+                                        <span>Biaya per tim</span>
                                         <span id="pay_now_dp" class="font-black text-[#0B5D1E]">Rp 0</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-3">
-                                        <span>Biaya web 10% dari DP</span>
+                                        <span>Biaya web 10% dari biaya per tim</span>
                                         <span id="pay_now_fee" class="font-black text-[#0B5D1E]">Rp 0</span>
                                     </div>
                                 </div>
@@ -262,8 +262,8 @@
                             <p>2. Masuk ke halaman Buat Pertandingan dan isi detail pertandingan: pilih lapangan, tanggal, jam mulai, dan durasi.</p>
                             <p>3. Sistem menghitung biaya otomatis setelah lapangan dan durasi dipilih.</p>
                             <p>4. Submit data pertandingan, lalu sistem mengecek ketersediaan slot lapangan.</p>
-                            <p>5. Pembayaran DP wajib 50% dari harga lapangan + biaya web 10% dari DP. Contoh: harga lapangan Rp100.000, maka DP Rp50.000 + biaya web Rp5.000.</p>
-                            <p>6. Jika DP belum dibayar, lapangan belum terbooking dan pertandingan belum tercatat.</p>
+                            <p>5. Pembayaran wajib sebesar biaya per tim + biaya web 10% dari biaya per tim. Contoh: harga lapangan Rp100.000, maka biaya per tim Rp50.000 + biaya web Rp5.000.</p>
+                            <p>6. Jika pembayaran belum berhasil, lapangan belum terbooking dan pertandingan belum tercatat.</p>
                             <p>7. Setelah berhasil, status pertandingan menjadi Scheduled dan ditampilkan sebagai tantangan terbuka.</p>
                         </div>
                     </div>
@@ -726,7 +726,7 @@
             alert(error.message || 'Gagal membuka Midtrans.');
         } finally {
             createMidtransPay.disabled = false;
-            createMidtransPay.textContent = 'Bayar DP via Midtrans';
+            createMidtransPay.textContent = 'Bayar via Midtrans';
         }
     });
     updateCostPreview();

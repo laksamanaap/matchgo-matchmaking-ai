@@ -23,7 +23,7 @@
             <div class="mb-6">
                 <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#4B8B43]">Pembayaran</p>
                 <h1 class="mt-2 text-4xl font-black text-[#0B5D1E]">Tagihan pertandingan</h1>
-                <p class="mt-2 max-w-2xl text-[#4B8B43]">Pertandingan biasa memakai DP 50% + biaya pengelola web 10%. AutoMatching wajib lunas 100% + biaya admin 10%.</p>
+                <p class="mt-2 max-w-2xl text-[#4B8B43]">Pertandingan biasa memakai biaya per tim + biaya pengelola web 10%. AutoMatching wajib lunas 100% + biaya admin 10%.</p>
             </div>
 
             @if($matches->count() > 0)
@@ -55,7 +55,7 @@
 
                                 <div class="grid gap-2 rounded-2xl bg-[#F1F8E9] p-4">
                                     <div class="flex justify-between gap-4 text-sm">
-                                        <span class="text-[#4B8B43]">{{ $isAutoMatch ? 'Pelunasan 100%' : 'DP 50%' }}</span>
+                                        <span class="text-[#4B8B43]">{{ $isAutoMatch ? 'Pelunasan 100%' : 'Biaya Per Tim' }}</span>
                                         <strong class="text-[#0B5D1E]">Rp {{ number_format($basePayment, 0, ',', '.') }}</strong>
                                     </div>
                                     <div class="flex justify-between gap-4 text-sm">

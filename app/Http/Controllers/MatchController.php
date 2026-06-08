@@ -529,7 +529,7 @@ class MatchController extends Controller
         return redirect()
             ->route('matches.create')
             ->withInput()
-            ->with('payment_required', 'Slot lapangan tersedia. Silakan bayar DP 50% + biaya web 10% untuk mencatat pertandingan dan mengunci booking.');
+            ->with('payment_required', 'Slot lapangan tersedia. Silakan bayar biaya per tim + biaya web 10% untuk mencatat pertandingan dan mengunci booking.');
     }
 
     public function midtransToken(MidtransSnapService $midtrans)
@@ -572,7 +572,7 @@ class MatchController extends Controller
         $dp = (int) round($totalCost / 2);
         $fee = (int) ceil($dp * 0.1);
         $amount = $dp + $fee;
-        $orderId = 'MG-DP-' . $team->id . '-' . now()->format('YmdHisv');
+        $orderId = 'MG-PAY-' . $team->id . '-' . now()->format('YmdHisv');
 
         try {
             $snap = $midtrans->createToken($orderId, $amount, [
@@ -583,13 +583,13 @@ class MatchController extends Controller
                     'id' => 'matchgo-dp-' . $field->id,
                     'price' => $dp,
                     'quantity' => 1,
-                    'name' => 'DP 50% ' . $field->name,
+                    'name' => 'Biaya per tim ' . $field->name,
                 ],
                 [
                     'id' => 'matchgo-web-fee',
                     'price' => $fee,
                     'quantity' => 1,
-                    'name' => 'Biaya web 10% dari DP',
+                    'name' => 'Biaya web 10% dari biaya per tim',
                 ],
             ]);
         } catch (\RuntimeException $exception) {
@@ -693,7 +693,7 @@ class MatchController extends Controller
                 'dp_per_team' => (int) round($totalCost / 2),
                 'handling_fee' => (int) ceil(round($totalCost / 2) * 0.1),
                 'cost_per_player' => (int) round($totalCost / max(1, $team->player_count ?: 1)),
-                'payment_notes' => "Biaya lapangan {$field->name} dibagi 2 tim. Kapten pembuat wajib membayar DP 50% dari harga lapangan ditambah biaya pengelola web 10% dari DP. Refund maksimal 6 jam setelah pertandingan dibuat.",
+                'payment_notes' => "Biaya lapangan {$field->name} dibagi 2 tim. Setiap tim wajib membayar biaya per tim ditambah biaya pengelola web 10% dari biaya per tim. Refund maksimal 6 jam setelah pertandingan dibuat.",
             ]);
 
             Payment::updateOrCreate([
@@ -724,7 +724,7 @@ class MatchController extends Controller
             $match->id
         ));
 
-        return redirect()->route('matches.show', $match)->with('success', 'DP berhasil dibayar. Pertandingan berhasil dibuat, lapangan terbooking, dan tantangan tampil sebagai tantangan terbuka.');
+        return redirect()->route('matches.show', $match)->with('success', 'Pembayaran berhasil. Pertandingan berhasil dibuat, lapangan terbooking, dan tantangan tampil sebagai tantangan terbuka.');
     }
 
     public function accept(FutsalMatch $match)
@@ -782,7 +782,7 @@ class MatchController extends Controller
             $match->id
         ));
 
-        return redirect()->route('matches.show', $match)->with('success', 'Tantangan berhasil diambil. Silakan bayar DP tim kamu lewat Midtrans.');
+        return redirect()->route('matches.show', $match)->with('success', 'Tantangan berhasil diambil. Silakan bayar biaya tim kamu lewat Midtrans.');
     }
 
     public function autoStore(Request $request, MatchmakingService $service)
@@ -1066,7 +1066,7 @@ class MatchController extends Controller
 
         $message = $refundAllowed
             ? 'Pertandingan berhasil dibatalkan. Refund demo Midtrans dibuat untuk ' . $refundedCount . ' pembayaran dan slot lapangan dilepas.'
-            : 'Pertandingan berhasil dibatalkan. DP hangus karena pembatalan dilakukan lebih dari 6 jam setelah pertandingan dibuat.';
+            : 'Pertandingan berhasil dibatalkan. Pembayaran hangus karena pembatalan dilakukan lebih dari 6 jam setelah pertandingan dibuat.';
 
         return redirect()->route('matches.show', $match)->with('success', $message);
     }
