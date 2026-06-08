@@ -21,8 +21,7 @@ class AppServiceProvider extends ServiceProvider
         Team::observe(TeamObserver::class);
         FutsalMatch::observe(FutsalMatchObserver::class);
 
-        // Auditor hanya boleh akses resource audit
-        Gate::define('manage-resources', fn ($user) => $user->role === 'admin');
-        Gate::define('audit-resources',  fn ($user) => $user->role === 'auditor');
+        Gate::define('manage-resources', fn ($user) => in_array($user->role, ['admin', 'super_admin'], true));
+        Gate::define('audit-resources',  fn ($user) => in_array($user->role, ['auditor', 'super_admin'], true));
     }
 }

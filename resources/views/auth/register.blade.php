@@ -1,145 +1,140 @@
-<!DOCTYPE html>
-<html lang="id" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar — MatchGo</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="h-full bg-slate-900 text-white">
+@extends('layouts.app')
 
-<div class="min-h-screen flex">
-    {{-- Left panel --}}
-    <div class="hidden lg:flex lg:w-1/2 relative items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-500 overflow-hidden">
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute top-10 right-10 w-64 h-64 rounded-full border-4 border-white"></div>
-            <div class="absolute bottom-20 left-10 w-40 h-40 rounded-full border-4 border-white"></div>
-            <div class="absolute top-1/2 right-1/3 w-80 h-80 rounded-full border-2 border-white"></div>
-        </div>
-        <div class="relative text-center px-12">
-            <div class="text-7xl mb-6">🏆</div>
-            <h1 class="text-4xl font-black tracking-tight mb-4">Gabung MatchGo</h1>
-            <p class="text-xl text-blue-100 font-medium">Buat tim, tantang lawan, menangkan!</p>
+@section('content')
+<div class="min-h-screen bg-[#F1F8E9] text-[#0B5D1E]">
+    <main class="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[0.86fr_1.14fr] lg:px-8">
+        <section class="hidden overflow-hidden rounded-3xl border border-[#DDEED8] bg-white shadow-xl shadow-[#1B5E20]/10 lg:block">
+            <div class="relative min-h-[760px] p-8">
+                <div class="absolute inset-0 field-pattern opacity-60"></div>
+                <div class="relative flex h-full min-h-[696px] flex-col justify-between">
+                    <a href="{{ route('home') }}" class="inline-flex w-fit items-center gap-3 rounded-2xl bg-[#F8FCF4] px-4 py-3 ring-1 ring-[#DDEED8]">
+                        <img src="{{ asset('matchgo-logo.svg') }}" alt="MATCHGO" class="h-10 w-10">
+                        <span class="text-2xl font-black tracking-tight font-heading">MATCH<span class="text-[#43A047]">GO.</span></span>
+                    </a>
 
-            <div class="mt-10 space-y-4 text-left max-w-xs mx-auto">
-                <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    <div>
+                        <p class="text-sm font-black uppercase tracking-[0.18em] text-[#4B8B43]">Daftar Captain</p>
+                        <h1 class="mt-4 max-w-xl text-5xl font-black leading-tight">
+                            Mulai bangun tim dan temukan rival futsal terbaik.
+                        </h1>
+                        <p class="mt-4 max-w-lg text-base font-semibold leading-7 text-[#4B8B43]">
+                            Setelah akun dibuat, kamu bisa melengkapi data tim, tambah pemain, lalu pakai fitur pertandingan.
+                        </p>
                     </div>
-                    <p class="text-blue-100 text-sm">Buat tim futsal dan undang teman</p>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+
+                    <div class="grid gap-3">
+                        <div class="flex gap-3 rounded-2xl bg-[#F1F8E9] p-4">
+                            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-[#2E8B3C] ring-1 ring-[#C8E6C9]">1</span>
+                            <div>
+                                <p class="font-black">Buat akun captain</p>
+                                <p class="text-sm font-semibold text-[#4B8B43]">Simpan identitas dan kontak koordinasi.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 rounded-2xl bg-[#F1F8E9] p-4">
+                            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-[#2E8B3C] ring-1 ring-[#C8E6C9]">2</span>
+                            <div>
+                                <p class="font-black">Lengkapi tim</p>
+                                <p class="text-sm font-semibold text-[#4B8B43]">Isi level, lokasi, logo, dan pemain.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 rounded-2xl bg-[#F1F8E9] p-4">
+                            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-[#2E8B3C] ring-1 ring-[#C8E6C9]">3</span>
+                            <div>
+                                <p class="font-black">Mulai match</p>
+                                <p class="text-sm font-semibold text-[#4B8B43]">Buat tantangan atau cari lawan otomatis.</p>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-blue-100 text-sm">Temukan lawan sepadan secara otomatis</p>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                    </div>
-                    <p class="text-blue-100 text-sm">Booking lapangan & split biaya otomatis</p>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    {{-- Right panel --}}
-    <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
-        <div class="w-full max-w-md">
-            <div class="lg:hidden text-center mb-10">
-                <span class="text-4xl">⚽</span>
-                <h1 class="text-3xl font-black text-green-400 mt-2">MatchGo</h1>
+        <section class="mx-auto w-full max-w-2xl">
+            <div class="mb-8 flex items-center justify-between gap-4 lg:hidden">
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
+                    <img src="{{ asset('matchgo-logo.svg') }}" alt="MATCHGO" class="h-11 w-11">
+                    <span class="text-2xl font-black tracking-tight font-heading">MATCH<span class="text-[#43A047]">GO.</span></span>
+                </a>
             </div>
 
-            <h2 class="text-3xl font-bold text-white mb-2">Buat akun baru</h2>
-            <p class="text-slate-400 mb-8">Daftar gratis dan mulai bermain</p>
-
-            <form method="POST" action="{{ route('register') }}" class="space-y-5">
-                @csrf
-
-                <div>
-                    <label for="name" class="block text-sm font-medium text-slate-300 mb-1.5">Nama Lengkap</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value="{{ old('name') }}"
-                        autocomplete="name"
-                        class="w-full px-4 py-3 rounded-xl bg-slate-800 border @error('name') border-red-500 @else border-slate-700 @enderror text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                        placeholder="Ahmad Futsal"
-                        required
-                    >
-                    @error('name')
-                        <p class="mt-1.5 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
+            <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-xl shadow-[#1B5E20]/10 sm:p-8">
+                <div class="mb-7">
+                    <p class="text-sm font-black uppercase tracking-[0.16em] text-[#4B8B43]">Buat Akun</p>
+                    <h2 class="mt-2 text-4xl font-black">Daftar MATCHGO</h2>
+                    <p class="mt-2 text-sm font-semibold text-[#4B8B43]">Akun ini akan menjadi pemilik/captain tim kamu.</p>
                 </div>
 
-                <div>
-                    <label for="email" class="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value="{{ old('email') }}"
-                        autocomplete="email"
-                        class="w-full px-4 py-3 rounded-xl bg-slate-800 border @error('email') border-red-500 @else border-slate-700 @enderror text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                        placeholder="kamu@email.com"
-                        required
-                    >
-                    @error('email')
-                        <p class="mt-1.5 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
+                @if($errors->any())
+                    <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                        @foreach($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('register') }}" class="grid gap-5">
+                    @csrf
+
+                    <div>
+                        <label for="name" class="mb-2 block text-sm font-bold text-[#1B5E20]">Nama Pemilik / Captain</label>
+                        <div class="relative">
+                            <x-heroicon-o-user class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#43A047]" />
+                            <input id="name" name="name" type="text" value="{{ old('name') }}" required autocomplete="name" placeholder="Nama captain" class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 pl-12 text-sm font-semibold text-[#0B5D1E] outline-none transition placeholder:text-[#4B8B43]/50 focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20" />
+                        </div>
+                    </div>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+                        <div>
+                            <label for="email" class="mb-2 block text-sm font-bold text-[#1B5E20]">Email</label>
+                            <div class="relative">
+                                <x-heroicon-o-envelope class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#43A047]" />
+                                <input id="email" name="email" type="email" value="{{ old('email') }}" required autocomplete="email" placeholder="captain@email.com" class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 pl-12 text-sm font-semibold text-[#0B5D1E] outline-none transition placeholder:text-[#4B8B43]/50 focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="whatsapp" class="mb-2 block text-sm font-bold text-[#1B5E20]">WhatsApp</label>
+                            <div class="relative">
+                                <x-heroicon-o-phone class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#43A047]" />
+                                <input id="whatsapp" name="whatsapp" type="text" value="{{ old('whatsapp') }}" placeholder="08xxxxxxxxxx" class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 pl-12 text-sm font-semibold text-[#0B5D1E] outline-none transition placeholder:text-[#4B8B43]/50 focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+                        <div>
+                            <label for="password" class="mb-2 block text-sm font-bold text-[#1B5E20]">Password</label>
+                            <div class="relative">
+                                <x-heroicon-o-lock-closed class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#43A047]" />
+                                <input id="password" name="password" type="password" required autocomplete="new-password" placeholder="Minimal 8 karakter" class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 pl-12 text-sm font-semibold text-[#0B5D1E] outline-none transition placeholder:text-[#4B8B43]/50 focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="password_confirmation" class="mb-2 block text-sm font-bold text-[#1B5E20]">Konfirmasi Password</label>
+                            <div class="relative">
+                                <x-heroicon-o-key class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#43A047]" />
+                                <input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" placeholder="Ulangi password" class="w-full rounded-2xl border border-[#C8E6C9] bg-[#F8FCF4] px-4 py-3 pl-12 text-sm font-semibold text-[#0B5D1E] outline-none transition placeholder:text-[#4B8B43]/50 focus:border-[#2E8B3C] focus:ring-2 focus:ring-[#4CAF50]/20" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl bg-[#F1F8E9] px-4 py-3 text-xs font-bold leading-5 text-[#4B8B43]">
+                        Setelah daftar, kamu akan diarahkan ke dashboard untuk membuat atau melengkapi tim.
+                    </div>
+
+                    <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2E8B3C] px-5 py-3.5 text-sm font-black text-white shadow-md shadow-[#1B5E20]/15 transition hover:bg-[#23742F]">
+                        Daftar dan Mulai
+                        <x-heroicon-o-arrow-right class="h-5 w-5" />
+                    </button>
+                </form>
+
+                <div class="mt-6 rounded-2xl bg-[#F1F8E9] px-4 py-3 text-center text-sm font-bold text-[#4B8B43]">
+                    Sudah punya akun?
+                    <a href="{{ route('login.form') }}" class="text-[#0B5D1E] hover:text-[#43A047]">Masuk</a>
                 </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        autocomplete="new-password"
-                        class="w-full px-4 py-3 rounded-xl bg-slate-800 border @error('password') border-red-500 @else border-slate-700 @enderror text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                        placeholder="Min. 8 karakter"
-                        required
-                    >
-                    @error('password')
-                        <p class="mt-1.5 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-slate-300 mb-1.5">Konfirmasi Password</label>
-                    <input
-                        type="password"
-                        id="password_confirmation"
-                        name="password_confirmation"
-                        autocomplete="new-password"
-                        class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                        placeholder="Ulangi password"
-                        required
-                    >
-                </div>
-
-                <button
-                    type="submit"
-                    class="w-full py-3 px-4 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900"
-                >
-                    Buat Akun
-                </button>
-
-                <p class="text-center text-xs text-slate-500">
-                    Dengan mendaftar, kamu menyetujui syarat dan ketentuan MatchGo.
-                </p>
-            </form>
-
-            <p class="mt-6 text-center text-slate-400 text-sm">
-                Sudah punya akun?
-                <a href="{{ route('login') }}" class="text-green-400 font-semibold hover:text-green-300 transition">Masuk di sini</a>
-            </p>
-        </div>
-    </div>
+            </div>
+        </section>
+    </main>
 </div>
-
-</body>
-</html>
+@endsection

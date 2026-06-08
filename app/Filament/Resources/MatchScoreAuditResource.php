@@ -46,7 +46,9 @@ class MatchScoreAuditResource extends Resource
                     ->label('Pertandingan')
                     ->getStateUsing(
                         fn (MatchScoreAudit $record): string =>
-                            $record->futsalMatch->teamA->name . ' vs ' . $record->futsalMatch->teamB->name
+                            ($record->futsalMatch?->teamA?->name ?? 'Tim A tidak tersedia')
+                            . ' vs '
+                            . ($record->futsalMatch?->teamB?->name ?? 'Menunggu Lawan')
                     )
                     ->searchable(false),
 

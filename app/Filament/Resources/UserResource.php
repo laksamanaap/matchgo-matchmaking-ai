@@ -4,9 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -30,6 +28,28 @@ class UserResource extends Resource
     public static function canAccess(): bool
     {
         return auth()->user()?->isSuperAdmin();
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->isSuperAdmin();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->isSuperAdmin();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->isSuperAdmin()
+            && ! $record->isSuperAdmin()
+            && $record->id !== auth()->id();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 
     public static function form(Schema $schema): Schema
@@ -118,13 +138,9 @@ class UserResource extends Resource
             ->actions([
                 EditAction::make(),
                 DeleteAction::make()
-                    ->visible(fn (User $record): bool => ! $record->isSuperAdmin()),
+                    ->visible(fn (User $record): bool => static::canDelete($record)),
             ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ])
+            ->bulkActions([])
             ->defaultSort('created_at', 'desc');
     }
 

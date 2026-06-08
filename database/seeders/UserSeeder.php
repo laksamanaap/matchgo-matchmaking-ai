@@ -11,28 +11,34 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Super Admin
-        User::create([
-            'name'     => 'Super Admin',
-            'email'    => 'super@matchgo.id',
-            'password' => Hash::make('password'),
-            'role'     => 'super_admin',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'super@matchgo.id'],
+            [
+                'name'     => 'Super Admin',
+                'password' => Hash::make('password'),
+                'role'     => 'super_admin',
+            ]
+        );
 
         // Admin
-        User::create([
-            'name'     => 'Admin MatchGo',
-            'email'    => 'admin@matchgo.id',
-            'password' => Hash::make('password'),
-            'role'     => 'admin',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@matchgo.id'],
+            [
+                'name'     => 'Admin MatchGo',
+                'password' => Hash::make('password'),
+                'role'     => 'admin',
+            ]
+        );
 
         // Auditor
-        User::create([
-            'name'     => 'Doni Auditor',
-            'email'    => 'auditor@matchgo.id',
-            'password' => Hash::make('password'),
-            'role'     => 'auditor',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'auditor@matchgo.id'],
+            [
+                'name'     => 'Doni Auditor',
+                'password' => Hash::make('password'),
+                'role'     => 'auditor',
+            ]
+        );
 
         // Players
         $players = [
@@ -54,13 +60,14 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($players as $player) {
-            User::create([
-                'name'      => $player['name'],
-                'email'     => $player['email'],
-                'password'  => Hash::make('password'),
-                'role'      => 'player',
-                'whatsapp'  => $player['whatsapp'],
-            ]);
+            User::firstOrCreate(
+                ['email' => $player['email']],
+                [
+                    'name'     => $player['name'],
+                    'password' => Hash::make('password'),
+                    'role'     => 'player',
+                ]
+            );
         }
     }
 }
