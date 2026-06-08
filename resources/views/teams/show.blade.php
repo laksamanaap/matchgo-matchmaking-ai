@@ -1,6 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $teamLogoExists = $team->logo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($team->logo_url);
+    $levelLabel = str_replace('_', ' ', $team->skill_level);
+    $statusLabel = match ($team->verification_status) {
+        'verified' => 'Verified',
+        'rejected' => 'Rejected',
+        default => 'Pending',
+    };
+    $statusBadgeClass = match ($team->verification_status) {
+        'verified' => 'bg-emerald-500 text-white shadow-emerald-700/15',
+        'rejected' => 'bg-red-500 text-white shadow-red-700/15',
+        default => 'bg-amber-400 text-amber-950 shadow-amber-700/10',
+    };
+@endphp
+
 <div class="min-h-screen bg-[#F1F8E9]">
     <x-navbar />
     
@@ -21,64 +36,105 @@
 
         <div class="grid gap-8">
             {{-- Team Header --}}
-            <div class="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] rounded-3xl shadow-lg p-8 text-white">
-                <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <div class="flex items-center gap-5">
-                        <div class="h-28 w-28 overflow-hidden rounded-3xl border border-white/30 bg-white/20">
-                            @php
-                                $teamLogoExists = $team->logo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($team->logo_url);
-                            @endphp
+            <section class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1F7A32] via-[#349E46] to-[#74B843] p-1 shadow-2xl shadow-[#1B5E20]/18">
+                <div class="relative px-6 py-7 text-white sm:px-8 lg:px-10">
+                    <div class="absolute inset-x-0 top-0 h-px bg-white/30"></div>
+                    <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <div class="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
+                            <div class="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-[1.7rem] border border-white/25 bg-white/15 shadow-xl shadow-[#0B3D1F]/12 ring-1 ring-white/15">
                             @if($teamLogoExists)
-                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-full w-full object-contain p-2">
+                                <img src="{{ asset('storage/' . $team->logo_url) }}" alt="{{ $team->name }}" class="h-full w-full object-contain p-2.5">
                             @else
-                                <div class="flex h-full w-full items-center justify-center text-4xl font-bold">
+                                <div class="flex h-full w-full items-center justify-center text-4xl font-black">
                                     {{ strtoupper(substr($team->name, 0, 1)) }}
                                 </div>
                             @endif
+                            </div>
+                            <div class="min-w-0">
+                                <div class="mb-3 flex flex-wrap items-center gap-2">
+                                    <span class="rounded-full bg-white/18 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white ring-1 ring-white/20">
+                                        Tim Futsal
+                                    </span>
+                                    <span class="rounded-full px-3 py-1 text-xs font-black {{ $team->verification_status === 'verified' ? 'bg-white text-[#1B7A32]' : 'bg-white/18 text-white ring-1 ring-white/20' }}">
+                                        {{ $statusLabel }}
+                                    </span>
+                                </div>
+                                <h1 class="truncate text-4xl font-black tracking-normal text-white sm:text-5xl">{{ $team->name }}</h1>
+                                @if($team->description)
+                                    <p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-white/85">{{ $team->description }}</p>
+                                @endif
+                            </div>
                         </div>
-                        <div>
-                            <h1 class="text-4xl font-bold mb-2">{{ $team->name }}</h1>
-                            <p class="text-white/90">{{ $team->description }}</p>
-                        </div>
-                    </div>
-                    @if($team->owner_id === Auth::id())
-                        <div class="flex gap-3">
-                            <button type="button" data-open-team-edit class="px-6 py-3 rounded-2xl bg-white/20 text-white font-semibold hover:bg-white/30 transition">
-                                Edit
-                            </button>
-                            <form method="POST" action="{{ route('teams.destroy', $team) }}" class="inline" onsubmit="return confirm('Hapus tim ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-6 py-3 rounded-2xl bg-red-500/80 text-white font-semibold hover:bg-red-600 transition">
-                                    Hapus
+
+                        @if($team->owner_id === Auth::id())
+                            <div class="flex shrink-0 gap-3">
+                                <button type="button" data-open-team-edit class="inline-flex items-center gap-2 rounded-2xl bg-white/18 px-5 py-3 text-sm font-black text-white shadow-sm ring-1 ring-white/20 transition hover:bg-white/25">
+                                    <x-heroicon-o-pencil-square class="h-5 w-5" />
+                                    Edit
                                 </button>
-                            </form>
-                        </div>
-                    @endif
+                                <form method="POST" action="{{ route('teams.destroy', $team) }}" class="inline" onsubmit="return confirm('Hapus tim ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center gap-2 rounded-2xl bg-red-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-900/15 transition hover:bg-red-600">
+                                        <x-heroicon-o-trash class="h-5 w-5" />
+                                        Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
                 </div>
-            </div>
+            </section>
 
             {{-- Team Stats --}}
-            <div class="grid gap-6 md:grid-cols-4">
-                <div class="bg-white rounded-2xl shadow p-6">
-                    <p class="text-sm text-[#2E7D32]/80 mb-1">Level</p>
-                    <p class="text-2xl font-bold text-[#1B5E20] capitalize">{{ str_replace('_', '-', $team->skill_level) }}</p>
+            <section class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-lg shadow-[#1B5E20]/7">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-semibold text-[#4B8B43]">Level</p>
+                            <p class="mt-2 text-2xl font-black capitalize text-[#0B5D1E]">{{ $levelLabel }}</p>
+                        </div>
+                        <span class="grid h-11 w-11 place-items-center rounded-2xl bg-[#F1F8E9] text-[#2E7D32]">
+                            <x-heroicon-o-sparkles class="h-6 w-6" />
+                        </span>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl shadow p-6">
-                    <p class="text-sm text-[#2E7D32]/80 mb-1">Lokasi</p>
-                    <p class="text-2xl font-bold text-[#1B5E20]">{{ $team->city }}</p>
+                <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-lg shadow-[#1B5E20]/7">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-semibold text-[#4B8B43]">Lokasi</p>
+                            <p class="mt-2 text-2xl font-black text-[#0B5D1E]">{{ $team->city }}</p>
+                        </div>
+                        <span class="grid h-11 w-11 place-items-center rounded-2xl bg-[#F1F8E9] text-[#2E7D32]">
+                            <x-heroicon-o-map-pin class="h-6 w-6" />
+                        </span>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl shadow p-6">
-                    <p class="text-sm text-[#2E7D32]/80 mb-1">Pemain</p>
-                    <p class="text-2xl font-bold text-[#1B5E20]">{{ $team->activePlayerCount() }}</p>
+                <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-lg shadow-[#1B5E20]/7">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-semibold text-[#4B8B43]">Pemain</p>
+                            <p class="mt-2 text-2xl font-black text-[#0B5D1E]">{{ $team->activePlayerCount() }}</p>
+                        </div>
+                        <span class="grid h-11 w-11 place-items-center rounded-2xl bg-[#F1F8E9] text-[#2E7D32]">
+                            <x-heroicon-o-users class="h-6 w-6" />
+                        </span>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl shadow p-6">
-                    <p class="text-sm text-[#2E7D32]/80 mb-1">Status</p>
-                    <span class="inline-block px-4 py-2 rounded-xl text-white text-sm font-semibold {{ $team->verification_status === 'verified' ? 'bg-green-500' : 'bg-yellow-500' }}">
-                        {{ ucfirst($team->verification_status) }}
-                    </span>
+                <div class="rounded-3xl border border-[#DDEED8] bg-white p-6 shadow-lg shadow-[#1B5E20]/7">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-semibold text-[#4B8B43]">Status</p>
+                            <span class="mt-3 inline-flex rounded-xl px-4 py-2 text-sm font-black shadow-sm {{ $statusBadgeClass }}">
+                                {{ $statusLabel }}
+                            </span>
+                        </div>
+                        <span class="grid h-11 w-11 place-items-center rounded-2xl bg-[#F1F8E9] text-[#2E7D32]">
+                            <x-heroicon-o-shield-check class="h-6 w-6" />
+                        </span>
+                    </div>
                 </div>
-            </div>
+            </section>
 
             {{-- Statistik Tim --}}
             @php
