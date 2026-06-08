@@ -54,7 +54,7 @@ class MatchCostService
                 'cost_per_player' => $costPerPlayer,
                 'payment_notes' => $match->isAutoMatch()
                     ? 'AutoMatching wajib lunas 100% dari biaya per tim ditambah biaya admin 10%.'
-                    : 'DP 50% dari harga lapangan wajib dibayar saat pertandingan dibuat. Biaya pengelola web 10% dari DP. Refund maksimal 6 jam setelah pertandingan dibuat.',
+                    : 'Biaya per tim wajib dibayar saat pertandingan dibuat. Biaya pengelola web 10% dari biaya per tim. Refund maksimal 6 jam setelah pertandingan dibuat.',
             ]
         );
     }

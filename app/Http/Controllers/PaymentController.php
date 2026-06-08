@@ -105,13 +105,13 @@ class PaymentController extends Controller
                     'id' => 'matchgo-payment-' . $booking->id,
                     'price' => $basePayment,
                     'quantity' => 1,
-                    'name' => $booking->match->isAutoMatch() ? 'Pelunasan tim ' . $team->name : 'DP 50% tim ' . $team->name,
+                    'name' => $booking->match->isAutoMatch() ? 'Pelunasan tim ' . $team->name : 'Biaya per tim ' . $team->name,
                 ],
                 [
                     'id' => 'matchgo-web-fee-' . $booking->id,
                     'price' => $handlingFee,
                     'quantity' => 1,
-                    'name' => 'Biaya web 10% dari DP',
+                    'name' => 'Biaya web 10% dari biaya per tim',
                 ],
             ]);
         } catch (\RuntimeException $exception) {
@@ -212,7 +212,7 @@ class PaymentController extends Controller
             $payment->id
         ));
 
-        return redirect()->route('matches.show', $booking->match)->with('success', 'Pembayaran Midtrans berhasil. DP tim kamu sudah tercatat.');
+        return redirect()->route('matches.show', $booking->match)->with('success', 'Pembayaran Midtrans berhasil. Pembayaran tim kamu sudah tercatat.');
     }
 
     public function show(Payment $payment)

@@ -174,7 +174,7 @@ class MatchResource extends Resource
                             ),
 
                         Placeholder::make('dp_per_team')
-                            ->label('DP / Per Tim')
+                            ->label('Biaya Per Tim')
                             ->content(fn ($record) => $record?->matchCost
                                 ? 'Rp ' . number_format($record->matchCost->dp_per_team, 0, ',', '.')
                                 : '-'
@@ -256,7 +256,7 @@ class MatchResource extends Resource
                     ->default('-'),
 
                 TextColumn::make('matchCost.dp_per_team')
-                    ->label('DP / Per Tim')
+                    ->label('Biaya Per Tim')
                     ->money('IDR')
                     ->default('-'),
 
