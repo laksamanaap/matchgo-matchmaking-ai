@@ -355,10 +355,7 @@ class MatchResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            MatchResource\RelationManagers\TeamAPlayersRelationManager::class,
-            MatchResource\RelationManagers\TeamBPlayersRelationManager::class,
-        ];
+        return [];
     }
 
     public static function getPages(): array
